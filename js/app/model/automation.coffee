@@ -1,10 +1,13 @@
-try
-    window and window.document
-catch # running on node
-    _ = require('./../../node_modules/underscore')
-    Backbone = require('./../../node_modules/backbone')
-    Tree = require('./tree').Tree
-    Time = require('./time').Time
+`
+try {
+    window
+} catch(e) { // running on node
+    _ = require('./../../node_modules/underscore');
+    Backbone = require('./../../node_modules/backbone');
+    Tree = require('./tree').Tree;
+    Time = require('./time').Time;
+}
+`
 
 class Automation extends Backbone.Model
 

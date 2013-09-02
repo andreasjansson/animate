@@ -1,4 +1,5 @@
-// TODO: Logging!
+// TODO: Logging! (instead of returning err everywhere)
+// to delete, must enter password
 
 package main
 
@@ -20,10 +21,10 @@ import (
 	"database/sql"
 	"github.com/dlintw/goconf"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 var config *goconf.ConfigFile
-var rootDir string
 
 type JSONResponse map[string]interface{}
 
@@ -66,7 +67,6 @@ type Project struct {
 	Analysis string
 	Data string
 	EditKey string
-	Created int64
 }
 
 func (p *Project) Create() error {
@@ -78,18 +78,31 @@ func (p *Project) Create() error {
 }
 
 func (p *Project) Load() error {
-	// requires Name and Password
+	// requires Name and (Password or EditKey)
 	db, err := dbConnect()
-	row := db.QueryRow(
-		`SELECT audio_url, analysis, data, created
-		 FROM projects
-		 WHERE name=? AND password=?`, p.Name, p.Password)
-	err = row.Scan(&p.AudioURL, &p.Analysis, &p.Data, &p.Created)
+	var audioURL, analysis, data []byte
+	query := `SELECT audio_url, analysis, data
+		  FROM projects
+		  WHERE name=? AND `
+	var keyParam string
+	if p.EditKey == "" {
+		query += "password=?"
+		keyParam = p.Password
+	} else {
+		query += "edit_key=?"
+		keyParam = p.EditKey
+	}
+	row := db.QueryRow(query, p.Name, keyParam)
+	err = row.Scan(&audioURL, &analysis, &data)
 	if err == sql.ErrNoRows {
 		return ErrProjectNotFound
 	} else if err != nil {
 		return err
 	}
+
+	p.AudioURL = string(audioURL)
+	p.Analysis = string(analysis)
+	p.Data = string(data)
 
 	return err
 }
@@ -135,6 +148,7 @@ func (p *Project) SetEditKey(key string) error {
 	if rowsAffected == 0 {
 		return ErrProjectNotFound
 	}
+	p.EditKey = key
 	return nil
 }
 
@@ -176,6 +190,7 @@ type RawAnalysis struct {
 }
 
 type Analysis struct {
+	Duration float64
 	Sections []float64
 	Bars []float64
 	Beats []float64
@@ -189,6 +204,7 @@ func (a *Analysis) String() string {
 func apiPost(call string, vars url.Values) ([]byte, error) {
 	vars.Add("api_key", conf("default", "echo_nest_api_key"))
 	url := "http://developer.echonest.com/api/v4/" + call
+	log.Println(url, vars)
 	resp, err := http.PostForm(url, vars)
 	if err != nil {
 		return nil, err
@@ -199,6 +215,7 @@ func apiPost(call string, vars url.Values) ([]byte, error) {
 }
 
 func httpGet(url string) ([]byte, error) {
+	log.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -224,13 +241,16 @@ func analyse(audioURL string) (*Analysis, error) {
 		return nil, err
 	}
 
+	fmt.Println(string(resp))
+
 	var raw map[string]map[string]map[string]interface{}
 	json.Unmarshal(resp, &raw)
 	if len(raw["response"]["track"]) == 0 {
 		log.Printf("Failed to analyse %s, response: %v", audioURL, raw["response"])
-		return nil, errors.New("analysis failed")
+		return nil, errors.New("Failed to analyse audio file")
 	}
-	md5 := raw["response"]["track"]["audio_md5"].(string)
+	fmt.Println(raw["response"]["track"])
+	md5 := raw["response"]["track"]["md5"].(string)
 
 	attempts := 10
 	for i := 0; i < attempts; i ++ {
@@ -245,16 +265,17 @@ func analyse(audioURL string) (*Analysis, error) {
 		if status == "complete" {
 			audioSummary := raw["response"]["track"]["audio_summary"].(map[string]interface{})
 			analysisURL := audioSummary["analysis_url"].(string)
-			log.Println(analysisURL)
 			resp, err = httpGet(analysisURL)
 			if err != nil {
 				return nil, err
 			}
 			
 			analysis, err := parseAnalysis(resp)
+			analysis.Duration = audioSummary["duration"].(float64)
 			return analysis, err
 		}
 		if status == "error" {
+			log.Printf("Analysis failed for ", md5)
 			break
 		}
 
@@ -287,26 +308,57 @@ func parseAnalysis(str []byte) (*Analysis, error) {
 }
 
 func path(relative string) (absolute string) {
-	absolute = fmt.Sprintf("%s/%s", rootDir, relative)
+	absolute = fmt.Sprintf("%s/%s", conf("default", "root_dir"), relative)
 	return
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "method not allowed, must be GET", http.StatusMethodNotAllowed)
-		return
-	}
-	w.Header().Set("Content-Type", "text/html")
-	fmt.Println(path("html/index.html"))
-	http.ServeFile(w, r, path("html/index.html"))
+func setMessage(w http.ResponseWriter, name string, message string) {
+	http.SetCookie(w, &http.Cookie{
+		Name: "message-" + name,
+		Value: message,
+		Expires: time.Now().AddDate(0, 0, 1),
+	})
 }
 
-func create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed, must be POST", http.StatusMethodNotAllowed)
-		return
+func getMessage(r *http.Request, w http.ResponseWriter, name string) (string, error) {
+	cookie, err := r.Cookie(name)
+	value := cookie.Value
+	if err != nil {
+		return "", err
 	}
-	
+	http.SetCookie(w, &http.Cookie{
+		Name: "message-" + name,
+		Value: "",
+		Expires: time.Now().AddDate(0, 0, -1),
+		MaxAge: -1,
+	})
+	return value, nil
+}
+
+func renderTemplate(w http.ResponseWriter, filename string) {
+	tpl, err := template.ParseFiles(path("html/base.html.tpl"), path(filename))
+	if err != nil {
+		panic(err)
+	}
+
+	err = tpl.ExecuteTemplate(w, "base", nil)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "html/index.html.tpl")
+	return
+}
+
+func CreateHandler(w http.ResponseWriter, r *http.Request) {
+	renderTemplate(w, "html/create.html.tpl")
+	return
+}
+
+func CreateSubmitHandler(w http.ResponseWriter, r *http.Request) {
+
 	audioURL := r.FormValue("audio-url")
 	password := r.FormValue("password")
 	if audioURL == "" || password == "" {
@@ -347,11 +399,11 @@ func create(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func edit(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed, must be POST", http.StatusMethodNotAllowed)
-		return
-	}
+func EditFormHandler(w http.ResponseWriter, r *http.Request) {
+	
+}
+
+func EditSubmitHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	password := r.FormValue("password")
@@ -375,23 +427,54 @@ func edit(w http.ResponseWriter, r *http.Request) {
 
 	project.SetEditKey(encrypt(password + randomString(10)))
 
-	tmpl, err := template.ParseFiles(path("html/edit.html"))
-	data := map[string]string{
-		"name": project.Name,
-		"key": project.EditKey,
-		"data": project.Data,
-		"audio-url": project.AudioURL,
-		"analysis": project.Analysis,
-	}
-	tmpl.Execute(w, data)
+	http.SetCookie(w, &http.Cookie{
+		Name: "key-" + project.Name,
+		Value: project.EditKey,
+		Expires: time.Now().AddDate(0, 0, 1),
+	})
+
+	http.Redirect(w, r, "/edit/" + project.Name, 302)
 	return
 }
 
-func save(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "method not allowed, must be POST", http.StatusMethodNotAllowed)
-		return
+func EditHandler(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	name := vars["name"]
+
+	cookie, err := r.Cookie("key-" + name)
+	if err != nil {
+		setMessage(w, "edit", "Authentication failed, please try again")
+		http.Redirect(w, r, "/edit?name=" + name, 302)
 	}
+
+	project := &Project{Name: name, EditKey: cookie.Value}
+	err = project.Load()
+	if err != nil {
+		setMessage(w, "edit", "Authentication failed or the project was missing, please try again")
+		http.Redirect(w, r, "/edit?name=" + name, 302)
+	}
+	
+	tpl, err := template.ParseFiles(path("html/base.html.tpl"), path("html/edit.html.tpl"))
+	if err != nil {
+		panic(err)
+	}
+
+	data := map[string]template.JS{
+		"Name": template.JS(project.Name),
+		"Data": template.JS(project.Data),
+		"AudioURL": template.JS(project.AudioURL),
+		"Analysis": template.JS(project.Analysis),
+	}
+
+	err = tpl.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+func SaveHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
 	key := r.FormValue("key")
@@ -400,8 +483,6 @@ func save(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing attributes", http.StatusBadRequest)
 		return
 	}
-
-	// TODO check they're present
 
 	project := &Project{Name: name, Data: data, EditKey: key}
 	err := project.Update()
@@ -432,6 +513,32 @@ func conf(section string, name string) string {
 	return value
 }
 
+func route() {
+	r := mux.NewRouter()
+	post := r.Methods("POST").Subrouter()
+	get := r.Methods("GET").Subrouter()
+	
+	get.HandleFunc("/", IndexHandler)
+
+	get.HandleFunc("/create", CreateHandler)
+	post.HandleFunc("/create", CreateSubmitHandler)
+
+	get.HandleFunc("/edit", EditFormHandler)
+	post.HandleFunc("/edit", EditSubmitHandler)
+	get.HandleFunc("/edit/{name}", EditHandler)
+
+	post.HandleFunc("/save", SaveHandler)
+
+	http.Handle("/js/app/", CoffeeFileServer(path("")))
+	http.Handle("/js/lib/", http.FileServer(http.Dir(path(""))))
+	http.Handle("/css/", http.FileServer(http.Dir(path(""))))
+
+	http.Handle("/", r)
+
+	fmt.Println("Listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
 func main() {
 	var err error
 	configFilename := flag.String("conf", "config.ini", "path to configuration file")
@@ -440,12 +547,8 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Failed to read config file: %v", err))
 	}
-	rootDir = conf("default", "root_dir")
 
 	rand.Seed(time.Now().UnixNano()) 
 
-	fmt.Println("Listening on :8080")
-	http.HandleFunc("/", index)
-	http.HandleFunc("/create", create)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	route()
 }

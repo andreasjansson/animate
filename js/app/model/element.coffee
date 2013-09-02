@@ -1,8 +1,11 @@
-try
+`
+try {
     window
-catch # running on node
-    _ = require('./../../node_modules/underscore')
-    Backbone = require('./../../node_modules/backbone')
+} catch(e) { // running on node
+    _ = require('./../../node_modules/underscore');
+    Backbone = require('./../../node_modules/backbone');
+}
+`
 
 class Element extends Backbone.Model
 

@@ -5,17 +5,17 @@ CLICK_DRAG = 3
 
 class root.ScrubberView extends Backbone.View
 
+    el: '#scrubber'
+
     events:
         'mousedown': 'mouseDown'
 
     initialize: ->
-        @$el = $('#scrubber')
-        @zoomStart = 0
-        @zoomEnd = DATA.analysis.Duration
         @duration = DATA.analysis.Duration
-        console.log(@)
         @time = @options['time']
         @time.on('change:time', @setCurrentPosition)
+        @zoom = @options['zoom']
+        @zoom.on('change', @redraw)
 
         @paper = Raphael(@$el[0], @$el.width(), @$el.height())
         @buildScrubber()
@@ -25,11 +25,11 @@ class root.ScrubberView extends Backbone.View
         @orderedPoints = @orderPoints(DATA.analysis, [
             'Beats', 'Bars', 'Sections'])
 
-        @redraw(0, @duration)
+        @redraw()
 
-    redraw: (start, end) =>
-        @zoomStart = start = Math.max(start, 0)
-        @zoomEnd = end = Math.min(end, @duration)
+    redraw: () =>
+        start = @zoom.get('start')
+        end = @zoom.get('end')
 
         width = @$el.width()
         height = @$el.height()
@@ -61,7 +61,8 @@ class root.ScrubberView extends Backbone.View
 
         # since we clear we have to create a new one
         @currentPosition = @paper.rect(0, 0, 2, @$el.height())
-        @currentPosition.attr(stroke: 0, fill: 'black')
+        @currentPosition.attr(stroke: 0, fill: '#222222')
+        @setCurrentPosition()
 
     orderPoints: (analysis, keys) =>
         pointsDict = {}
@@ -83,7 +84,7 @@ class root.ScrubberView extends Backbone.View
         @dragStartX = evt.offsetX
         @dragStartTime = new Date().getTime() / 1000
         @zoomRect = @paper.rect(@dragStartX, 0, 0, @$el.height())
-        @zoomRect.attr(stroke: 0, 'fill-opacity': 0.5, fill: 'black')
+        @zoomRect.attr(stroke: 0, 'fill-opacity': 0.5, fill: '#222222')
         @$el.on('mousemove', @mouseMove)
         $('body').on('mouseup.zoom', @mouseUp)
 
@@ -103,12 +104,11 @@ class root.ScrubberView extends Backbone.View
         [startX, endX] = [@dragStartX, dragStopX].sort()
 
         width = @$el.width()
-        scale = (@zoomEnd - @zoomStart) / width
-        startTime = startX * scale + @zoomStart
-        endTime = endX * scale + @zoomStart
+        scale = (@zoom.get('end') - @zoom.get('start')) / width
+        startTime = startX * scale + @zoom.get('start')
+        endTime = endX * scale + @zoom.get('start')
 
-        @redraw(startTime, endTime)
-        @setCurrentPosition(@time)
+        @zoom.set(start: startTime, end: endTime)
 
     mouseMove: (evt) =>
         if evt.offsetX >= @dragStartX
@@ -117,12 +117,11 @@ class root.ScrubberView extends Backbone.View
             @zoomRect.attr(x: evt.offsetX, width: @dragStartX - evt.offsetX)
 
     click: (x) =>
-        scale = (@zoomEnd - @zoomStart) / @$el.width()
-        time = x * scale + @zoomStart
+        scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
+        time = x * scale + @zoom.get('start')
         @time.set('time', time)
 
-    setCurrentPosition: (time) =>
-        scale = (@zoomEnd - @zoomStart) / @$el.width()
-        x = (time.get('time') - @zoomStart) / scale
-        console.log(@zoomStart, @zoomEnd, scale, time.get('time'), x)
+    setCurrentPosition: () =>
+        scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
+        x = (@time.get('time') - @zoom.get('start')) / scale
         @currentPosition.attr(x: x)
