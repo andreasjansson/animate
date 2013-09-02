@@ -1,8 +1,4 @@
 body {
-/*
-    border: 5px solid #222;
-    margin: 5px;
-*/
     font-family: quicksand, sans-serif;
     font-size: 15px;
     color: #222;
@@ -107,7 +103,7 @@ p {
 }
 
 #add-element input.text {
-    width: 260px;
+    width: 290px;
 }
 
 #options {
@@ -154,6 +150,7 @@ p {
     display: block;
     position: relative;
     user-drag: none;
+    user-select: none;
     -moz-user-select: none;
     -webkit-user-drag: none;
 }
@@ -167,7 +164,6 @@ p {
 #zoom .reset.icon {
     font-weight: bold;
     font-size: 23px;
-    margin-top: -3px;
 }
 
 #zoom .icon {

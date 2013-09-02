@@ -16,7 +16,6 @@
     <h2>Add an image</h2>
     <form>
       <input type="text" class="url text" />
-      <button class="icon icon-plus" href="#" title="Add it!" />
     </form>
   </div>
   <div id="options" class="panel">

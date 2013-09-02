@@ -38,25 +38,21 @@ class root.ElementView extends Backbone.View
         if 'url' of changes
             @$el.attr('src', url)
 
-    # TODO: use absolute values, disable interpolation
-    # while we're dragging
+    width: =>
+        return @$el.width()
+
+    height: =>
+        return @$el.height()
+
+    # TODO: disable interpolation while we're dragging
     startDrag: (evt) =>
-        @startDragX = evt.clientX
-        @startDragY = evt.clientY
-        @startX = @element.get('x')
-        @startY = @element.get('y')
-        $('body').on('mousemove', @drag)
-        $('body').on('mouseup', @stopDrag)
+        dragger = new Dragger(evt, $('#screen'))
+        dragger.on('move', @drag)
+        dragger.on('release', @release)
+        evt.preventDefault()
 
     drag: (evt) =>
-        x = evt.clientX - @startDragX + @startX
-        y = evt.clientY - @startDragY + @startY
-        @element.set(x: x, y: y)
+        @element.set(x: evt.grabRelX, y: evt.grabRelY)
 
-    stopDrag: (evt) =>
-        $('body').off('mousemove', @drag)
-        $('body').off('mouseup', @stopDrag)
-
-        x = evt.clientX - @startDragX + @startX
-        y = evt.clientY - @startDragY + @startY
-        @element.set(x: x, y: y)
+    release: (evt) =>
+        @element.set(x: evt.grabRelX, y: evt.grabRelY)

@@ -13,13 +13,16 @@ class root.Automation extends Backbone.Model
         'points': null
 
     initialize: ->
-        @set('points', new Tree())
+        @points = []
+        @pointsIndex = {}
+        @recentPointIndex = null
+
         @get('time').on('change', @checkVisibleChange)
         @addPoint(@get('time').get('time'), @get('element').get(@get('attribute')))
 
     addPoint: (time, value) =>
         time = Math.round(time * 10) / 10
-        existing = @get('points').find(time)
+        existing = @points[@pointsIndex[time]]
         if existing?
             point = existing
             point.set('value', value)
@@ -29,7 +32,17 @@ class root.Automation extends Backbone.Model
             point.on('change:time', @changePointTime)
             point.on('change:value', @changePointValue)
 
-            @get('points').insert(time, point)
+            inserted = false
+            for p, i in @points
+                if time < p.get('time')
+                    @points.splice(i, 0, point)
+                    @pointsIndex[time] = i
+                    inserted = true
+                    break
+            if not inserted
+                @points.push(point)
+                @pointsIndex[time] = @points.length - 1
+
             @trigger('newPoint', point)
 
             visibleChange = @getVisibleChange(point)
@@ -39,39 +52,19 @@ class root.Automation extends Backbone.Model
         return point
 
     deletePoint: (time) =>
-        @get('points').delete(time)
+        i = @pointsIndex[time]
+        @points.splice(i, 1)
+        delete @pointsIndex[time]
 
     changePointTime: (point, time) =>
-        time = Math.round(time * @get('time').get('fps')) / @get('time').get('fps')
-        originalTime = point.get('_originalTime')
-        before = @get('points').prev(originalTime)
-        after = @get('points').next(originalTime)
-
-        @get('points').move(originalTime, time, point)
-        point.set('_originalTime', time)
-
-        visibleChange = @getVisibleChangeAround(before, after)
-        if visibleChange?
-            @get('element').set(@attribute, visibleChange, noAutomation: true)
+        # for now, optimise later
+        @deletePoint(point._originalTime)
+        @addPoint(time, point.get('value'))
 
     changePointValue: (point, value) =>
         visibleChange = @getVisibleChange(point)
         if visibleChange?
             @get('element').set(@get('attribute'), visibleChange, noAutomation: true)
-
-    getVisibleChangeAround: (before, after) =>
-        if Time.CurrentTime > before.get('time') and Time.CurrentTime < after.get('time')
-            afterBefore = @get('points').next(before.get('time'))
-
-            if afterBefore == after
-                return @interpolate(before, after, Time.CurrentTime)
-
-            if Time.CurrentTime < afterBefore.get('time')
-                return @interpolate(before, afterBefore, Time.CurrentTime)
-
-            return @interpolate(afterBefore, after, Time.CurrentTime)
-
-        return null
 
     getVisibleChange: (current) =>
         time = current.get('time')
@@ -81,7 +74,7 @@ class root.Automation extends Backbone.Model
             return current.get('value')
 
         else if Time.CurrentTime < time
-            before = @get('points').prev(time)
+            before = @points[@pointsIndex[time] - 1]
 
             if not before?
                 return null
@@ -93,7 +86,7 @@ class root.Automation extends Backbone.Model
                     return before.get('value')
 
         else
-            after = @get('points').next(time)
+            after = @points[@pointsIndex[time] + 1]
             if not after?
                 return current.get('value')
 
@@ -112,23 +105,55 @@ class root.Automation extends Backbone.Model
         return value
 
     getVisibleChangeNear: (time) =>
-        # TODO: cache nearest and use iterator
-        t = time.get('time')
-        before = @get('points').searchPrev(t)
+        # TODO: non-interpolated case
+        if time of @pointsIndex
+            return @points[@pointsIndex[time]].get('value')
 
-        if not before
-            return null
+        # try the most recent one, if it's not there do a binary search
+        if @recentPointIndex?
+            recentPoint = @points[@recentPointIndex]
+            if time > recentPoint.get('time')
+                nextPoint = @points[@recentPointIndex + 1]
+                if not nextPoint?
+                    return recentPoint.get('value')
+                if recentPoint.get('time') < time and nextPoint.get('time') > time
+                    return @interpolate(recentPoint, nextPoint, time)
+                if time > nextPoint.get('time')
+                    followingPoint = @points[@recentPointIndex + 2]
+                    if not followingPoint?
+                        @recentPointIndex += 1
+                        return nextPoint.get('value')
+                    if followingPoint.get('time') > time
+                        @recentPointIndex += 1
+                        return @interpolate(nextPoint, followingPoint, time)
 
-        if not before.get('interpolate')
-            return before.get('value')
-        after = @get('points').next(before.get('time'))
-        if not after
-            return before.get('value')
+        start = 0
+        end = @points.length
+        mid = 0
+        while start < end - 1
+            mid = Math.floor((end - start) / 2) + start
+            if time < @points[mid].get('time')
+                end = mid
+            else
+                start = mid
 
-        return @interpolate(before, after, t)
+        if @get('attribute') == 'x'
+            console.log(mid)
+
+        @recentPointIndex = mid
+        point = @points[mid]
+        if time < point.get('time')
+            prev = @points[mid - 1]
+            if not prev?
+                return null
+            return @interpolate(prev, point, time)
+        next = @points[mid + 1]
+        if not next?
+            return point.get('value')
+        return @interpolate(point, next, time)
 
     checkVisibleChange: (time) =>
-        change = @getVisibleChangeNear(time)
+        change = @getVisibleChangeNear(time.get('time'))
         if change?
             @get('element').set(@get('attribute'), change, noAutomation: true)
 

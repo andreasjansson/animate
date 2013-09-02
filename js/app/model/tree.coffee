@@ -25,7 +25,7 @@ class root.Tree
         return null
 
     insert: (key, value) =>
-        node = new TreeNode(key, value)
+        node = new root.TreeNode(key, value)
         if @root?
             node = @root.insert(node)
         else
@@ -99,7 +99,7 @@ class TreeIterator
     hasPrev: =>
         return @_current.prev?
 
-class TreeNode
+class root.TreeNode
 
     constructor: (key, value) ->
         @key = key
@@ -245,10 +245,3 @@ class TreeNode
         leftSize = if @left? then @left.size() else 0
         rightSize = if @right? then @right.size() else 0
         return 1 + leftSize + rightSize
-
-try
-    window and window.document
-catch # running on node
-    exports.Tree = Tree
-    exports.TreeIterator = TreeIterator
-    exports.TreeNode = TreeNode

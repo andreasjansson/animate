@@ -193,3 +193,4 @@ describe 'tree.js', ->
                     expect(it.current().key).toEqual(sorted_list[i])
                     i -= 1
                     it.prev()
+

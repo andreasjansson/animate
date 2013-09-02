@@ -17,6 +17,7 @@ class root.ElementAdderView extends Backbone.View
             @elements.addElement(url)
         p.fail =>
             alert('Sorry, that looks like a broken image')
+        @$('input').blur()
         return false
 
     isValidImageURL: (url) =>
