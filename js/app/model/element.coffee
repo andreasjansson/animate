@@ -17,13 +17,31 @@ class root.Element extends Backbone.Model
         'rotation': 0
         'zIndex': 0
 
+    attrs:
+        [['x', 700], # TODO: make less horrid
+         ['y', 393],
+         ['width', 700],
+         ['height', 393],
+         ['opacity', 1],
+         ['rotation', 360],
+         ['zIndex', 20]]
+
     initialize: ->
-        attrs = ['x', 'y', 'width', 'height', 'opacity', 'rotation', 'zIndex']
         @automations = {}
-        for attr in attrs
+        for [attr, maxValue] in @attrs
             do (attr) =>
-                automation = new Automation(element: @, attribute: attr, time: @get('time'))
+                automation = new Automation(element: @, attribute: attr, time: @get('time'), maxValue: maxValue)
                 @on 'change:' + attr, (element, value, options) =>
                     if not options.noAutomation
                         automation.addPoint(@get('time').get('time'), @get(attr))
                 @automations[attr] = automation
+
+    serialize: =>
+        data = url: @url, automations: {}
+        for attr, automation in automations:
+            data.automations[attr] = automation.serialize()
+        return data
+
+    unserialize: (obj) ->
+        for attr, a in automations
+            @automations[attr].unserialize(a)

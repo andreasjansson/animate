@@ -33,6 +33,9 @@
     <script src="/js/app/view/element.js"></script>
     <script src="/js/app/view/elementadder.js"></script>
     <script src="/js/app/view/automations.js"></script>
+    <script src="/js/app/view/automationgroup.js"></script>
+    <script src="/js/app/view/automation.js"></script>
+    <script src="/js/app/view/automationpoint.js"></script>
     <script src="/js/app/view/dragger.js"></script>
   </body>
 </html>

@@ -157,18 +157,7 @@ class root.Automation extends Backbone.Model
         if change?
             @get('element').set(@get('attribute'), change, noAutomation: true)
 
+    serialize: =>
 
-class AutomationPoint extends Backbone.Model
-
-    defaults: ->
-        'time': null
-        'value': null
-        'interpolate': true
-        '_originalTime': null
-
-
-try
-    window and window.document
-catch # running on node
-    exports.Automation = Automation
-    exports.AutomationPoint = AutomationPoint
+    unserialize: (obj) =>
+        

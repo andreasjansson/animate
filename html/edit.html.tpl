@@ -40,6 +40,9 @@
   <a href="#" class="icon icon-zoom-in in" title="Zoom in!"></a>
 </div>
 
+<div id="automations">
+</div>
+
 <script>
     var DATA = {
         name: "{{.Name}}",
@@ -52,7 +55,34 @@
         url: '/js/lib/soundmanager/swf',
         debugMode: false,
     })
-    
+
+</script>
+
+<script type="text/template" id="automation-group-template">
+  <div class="group">
+    <div class="group-backdrop">
+      <div class="element-title title">
+        <img src="<%= url %>" />
+      </div>
+      <div class="timeline">
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="automation-template">
+  <div class="automation">
+    <div class="automation-title title">
+      <h3><%= name %></h3>
+    </div>
+    <div class="timeline">
+    </div>
+  </div>
+</script>
+
+<script type="text/template" id="automation-point-template">
+  <div class="automation-point">
+  </div>
 </script>
 
 {{end}}
