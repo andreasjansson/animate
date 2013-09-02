@@ -50,7 +50,8 @@
     };
 
     soundManager.setup({
-        url: '/js/lib/soundmanager/swf'
+        url: '/js/lib/soundmanager/swf',
+        debugMode: false,
     })
     
 </script>

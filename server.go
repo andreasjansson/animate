@@ -275,6 +275,7 @@ func analyse(audioURL string) (*Analysis, error) {
 			return analysis, err
 		}
 		if status == "error" {
+			fmt.Println(raw["response"])
 			log.Printf("Analysis failed for ", md5)
 			break
 		}
@@ -310,29 +311,6 @@ func parseAnalysis(str []byte) (*Analysis, error) {
 func path(relative string) (absolute string) {
 	absolute = fmt.Sprintf("%s/%s", conf("default", "root_dir"), relative)
 	return
-}
-
-func setMessage(w http.ResponseWriter, name string, message string) {
-	http.SetCookie(w, &http.Cookie{
-		Name: "message-" + name,
-		Value: message,
-		Expires: time.Now().AddDate(0, 0, 1),
-	})
-}
-
-func getMessage(r *http.Request, w http.ResponseWriter, name string) (string, error) {
-	cookie, err := r.Cookie(name)
-	value := cookie.Value
-	if err != nil {
-		return "", err
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name: "message-" + name,
-		Value: "",
-		Expires: time.Now().AddDate(0, 0, -1),
-		MaxAge: -1,
-	})
-	return value, nil
 }
 
 func renderTemplate(w http.ResponseWriter, filename string) {
@@ -400,7 +378,22 @@ func CreateSubmitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditFormHandler(w http.ResponseWriter, r *http.Request) {
-	
+
+	name := r.FormValue("name")
+
+	tpl, err := template.ParseFiles(path("html/base.html.tpl"), path("html/editform.html.tpl"))
+	if err != nil {
+		panic(err)
+	}
+
+	data := map[string]string {
+		"Name": name,
+	}
+	err = tpl.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
 
 func EditSubmitHandler(w http.ResponseWriter, r *http.Request) {
@@ -444,7 +437,6 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("key-" + name)
 	if err != nil {
-		setMessage(w, "edit", "Authentication failed, please try again")
 		http.Redirect(w, r, "/edit?name=" + name, 302)
 		return
 	}
@@ -452,7 +444,6 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 	project := &Project{Name: name, EditKey: cookie.Value}
 	err = project.Load()
 	if err != nil {
-		setMessage(w, "edit", "Authentication failed or the project was missing, please try again")
 		http.Redirect(w, r, "/edit?name=" + name, 302)
 	}
 	

@@ -63,8 +63,9 @@ func compile(path string) error {
 	if jsErr != nil || coffeeInfo.ModTime().After(jsInfo.ModTime()) {
 		log.Printf("Recompiling %s", dir + coffee)
 		cmd := exec.Command("coffee", "-c", "-m", "-o", dir, dir + coffee)
-		err := cmd.Run()
+		out, err := cmd.CombinedOutput()
 		if err != nil {
+			log.Println(string(out))
 			return err
 		}
 	}

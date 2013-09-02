@@ -13,7 +13,6 @@ class root.Zoom extends Backbone.Model
         else
             (attrs = {})[key] = val
 
-        console.log('validate')
         duration = DATA.analysis.Duration
         if attrs.start < 0
             attrs.start = 0

@@ -1,6 +1,7 @@
 {{define "base"}}
 <html>
   <head>
+    <link rel="stylesheet" href="/css/reset.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <script src="//use.edgefonts.net/londrina-shadow;quicksand.js"></script>
 <!--    <link rel="stylesheet" href="/css/elusive-iconfont/css/elusive-webfont.css" /> -->
@@ -31,6 +32,8 @@
     <script src="/js/app/view/elements.js"></script>
     <script src="/js/app/view/element.js"></script>
     <script src="/js/app/view/elementadder.js"></script>
+    <script src="/js/app/view/automations.js"></script>
+    <script src="/js/app/view/dragger.js"></script>
   </body>
 </html>
 {{end}}

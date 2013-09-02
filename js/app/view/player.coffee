@@ -14,9 +14,8 @@ class root.PlayerView extends Backbone.View
         $(document).on('keypress', @keyPress)
         
     stop: =>
-        $play = @$('.pause')
-        $play.removeClass('pause').addClass('play')
-        $play.text('Play')
+        @$('.pause').hide()
+        @$('.play').show()
         
     play: =>
         @$('.play').hide()

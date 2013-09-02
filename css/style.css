@@ -47,9 +47,10 @@ input.text:focus {
 
 h1 {
     font-family: londrina-shadow, sans-serif;
-    font-size: 62px;
+    font-size: 58px;
     margin: 0;
     line-height: 1;
+    font-weight: bold;
 }
 
 #left-panel {
@@ -70,6 +71,9 @@ h1 {
 
 h2 {
     margin: 0;
+    font-weight: bold;
+    font-size: 22px;
+    margin-bottom: 10px;
 }
 
 p {
