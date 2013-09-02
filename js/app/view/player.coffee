@@ -19,16 +19,16 @@ class root.PlayerView extends Backbone.View
         $play.text('Play')
         
     play: =>
-        $play = @$('.play')
-        $play.removeClass('play').addClass('pause')
-        $play.text('Pause')
+        @$('.play').hide()
+        @$('.pause').show()
         @player.play()
+        return false
         
     pause: =>
-        $play = @$('.pause')
-        $play.removeClass('pause').addClass('play')
-        $play.text('Play')
+        @$('.pause').hide()
+        @$('.play').show()
         @player.pause()
+        return false
 
     togglePlay: =>
         console.log @player.isPlaying()

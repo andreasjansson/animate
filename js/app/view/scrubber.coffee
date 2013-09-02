@@ -1,3 +1,5 @@
+# TODO: hang on a little "handle" to currentPosition that you can use to scrub
+
 root = exports ? this
 
 CLICK_TIME = 0.2
@@ -85,16 +87,15 @@ class root.ScrubberView extends Backbone.View
         @dragStartTime = new Date().getTime() / 1000
         @zoomRect = @paper.rect(@dragStartX, 0, 0, @$el.height())
         @zoomRect.attr(stroke: 0, 'fill-opacity': 0.5, fill: '#222222')
-        @$el.on('mousemove', @mouseMove)
-        $('body').on('mouseup.zoom', @mouseUp)
+        $(document).on('mousemove', @mouseMove)
+        $(document).one('mouseup', @mouseUp)
 
     mouseUp: (evt) =>
         dragStopX = evt.offsetX
         dragStopTime = new Date().getTime() / 1000
 
         @zoomRect.remove()
-        @$el.off('mousemove', @mouseMove)
-        $('body').off('mouseup.zoom', @mouseUp)
+        $(document).off('mousemove', @mouseMove)
 
         if (dragStopTime - @dragStartTime < CLICK_TIME and
             Math.abs(dragStopX - @dragStartX) < CLICK_DRAG) or

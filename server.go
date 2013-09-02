@@ -446,6 +446,7 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		setMessage(w, "edit", "Authentication failed, please try again")
 		http.Redirect(w, r, "/edit?name=" + name, 302)
+		return
 	}
 
 	project := &Project{Name: name, EditKey: cookie.Value}

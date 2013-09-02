@@ -4,8 +4,6 @@
 }`
 root = exports ? this
 
-TICK_INTERVAL = 100
-
 class root.Player extends Backbone.Model
 
     events:
@@ -21,7 +19,7 @@ class root.Player extends Backbone.Model
 
     play: =>
         @sound.play(position: time.get('time') * 1000, onfinish: @stop)
-        @interval = window.setInterval(@updateTime, TICK_INTERVAL)
+        @interval = window.setInterval(@updateTime, 1000 / @get('time').get('fps'))
 
     pause: =>
         @sound.pause()

@@ -1,15 +1,13 @@
-`
-try {
-    window
-} catch(e) { // running on node
+`try { window } catch(e) { // running on node
     _ = require('./../../node_modules/underscore');
     Backbone = require('./../../node_modules/backbone');
-}
-`
+}`
+root = exports ? this
 
-class Element extends Backbone.Model
+# an element *in the current time slice*
+class root.Element extends Backbone.Model
 
-    defaults:
+    defaults: ->
         'url': null
         'x': 0,
         'y': 0,
@@ -19,7 +17,13 @@ class Element extends Backbone.Model
         'rotation': 0
         'zIndex': 0
 
-try
-    window and window.document
-catch # running on node
-    exports.Element = Element
+    initialize: ->
+        attrs = ['x', 'y', 'width', 'height', 'opacity', 'rotation', 'zIndex']
+        @automations = {}
+        for attr in attrs
+            do (attr) =>
+                automation = new Automation(element: @, attribute: attr, time: @get('time'))
+                @on 'change:' + attr, (element, value, options) =>
+                    if not options.noAutomation
+                        automation.addPoint(@get('time').get('time'), @get(attr))
+                @automations[attr] = automation

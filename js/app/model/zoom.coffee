@@ -2,7 +2,7 @@ root = exports ? this
 
 class root.Zoom extends Backbone.Model
 
-    defaults:
+    defaults: ->
         start: 0
         end: DATA.analysis.Duration
 

@@ -2,31 +2,43 @@
 
 <script src="/js/app/app.js"></script>
 
+<div id="left-panel">
+  <a href="#" class="save icon icon-save" title="Save!"></a>
+  <a href="#" class="preview icon icon-rocket" title="Bounce!"></a>
+</div>
+
 <div id="screen">
 </div>
 
-<div id="side-panel">
+<div id="right-panel">
   <h1>Music Video Animator Pro</h1>
   <div id="add-element" class="panel">
-    <h2>Add an object</h2>
-    <input type="text" id="element-url" />
-    <a class="button" href="#">Add it!</a>
+    <h2>Add an image</h2>
+    <form>
+      <input type="text" class="url text" />
+      <button class="icon icon-plus" href="#" title="Add it!" />
+    </form>
   </div>
   <div id="options" class="panel">
     <h2>Options</h2>
-  </div>
-  <div id="zoom" class="panel">
-    <h2>Zoom</h2>
-    <a href="#" class="reset">reset</a>
-    <a href="#" class="out">out</a>
-    <a href="#" class="in">in</a>
+    <form class="background-color">
+      <label for="bg-color-input">Background</label>
+      <input id="bg-color-input" type="text" class="text" value="#FFFFFF" />
+    </form>
   </div>
 </div>
 
 <div id="play-controls">
-  <a class="play" href="#">Play</a>
+  <a class="icon icon-play play" href="#" title="Play!"></a>
+  <a class="icon icon-pause pause" href="#" title="Pause!" style="display: none"></a>
 </div>
 <div id="scrubber">
+</div>
+
+<div id="zoom">
+  <a href="#" class="icon reset" title="Reset zoom!">1:1</a>
+  <a href="#" class="icon icon-zoom-out out" title="Zoom out!"></a>
+  <a href="#" class="icon icon-zoom-in in" title="Zoom in!"></a>
 </div>
 
 <script>

@@ -7,10 +7,9 @@ root = exports ? this
 
 class root.Time extends Backbone.Model
 
-    @CurrentTime = 0
-
-    defaults:
+    defaults: ->
         time: 0
+        fps: 20
 
 
 try

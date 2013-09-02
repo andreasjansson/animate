@@ -16,16 +16,56 @@ body {
     margin: 10px 5px;
 }
 
+.icon {
+    text-decoration: none;
+    color: #222;
+    font-size: 40px;
+}
+
+button.icon {
+    background: none;
+    cursor: pointer;
+    font-size : 18px;
+    border: none;
+    margin: 0px;
+    padding: 2px;
+}
+
+input.text {
+    background-color: #DDD;
+    font-size: 18px;
+    font-family: quicksand, sans-serif;
+    border: 0;
+    outline: 1px solid #222;
+    padding: 0 2px;
+}
+
+input.text:focus {
+    background-color: white;
+    outline: 0;
+}
+
 h1 {
     font-family: londrina-shadow, sans-serif;
-    font-size: 50px;
+    font-size: 62px;
     margin: 0;
     line-height: 1;
 }
 
-#side-panel h1 {
-    height: 110px;
-    padding: 20px;
+#left-panel {
+    float: left;
+    width: 40px;
+}
+
+#left-panel .icon {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+#right-panel h1 {
+    height: 130px;
+    padding: 0 0 0 2px;
 }
 
 h2 {
@@ -41,10 +81,13 @@ p {
     height: 393px;
     float: left;
     margin-bottom: 10px;
+    margin-left: 10px;
+    background-color: white;
+    overflow: hidden;
 }
 
-#side-panel {
-    width: 370px;
+#right-panel {
+    width: 320px;
     margin-left: 10px;
     float: left;
 }
@@ -55,27 +98,77 @@ p {
 }
 
 #add-element {
-    height: 80px;
+    height: 70px;
     margin-bottom: 10px;
+}
+
+#add-element input.text {
+    width: 260px;
 }
 
 #options {
     float: left;
-    width: 180px;
-    height: 103px;
+    height: 133px;
+    width: 290px;
+}
+
+#options label {
+    float: left;
+    clear: both;
+    width: 100px;
+    font-size: 18px;
+    padding-top: 3px;
+    font-weight: bold;
+}
+
+#options input {
+    width: 170px;
+    float: right;
 }
 
 #play-controls {
-    width: 100px;
+    width: 50px;
     height: 60px;
-    margin-left: 10px;
     float: left;
     clear: both;
 }
 
+#play-controls .icon {
+    margin: 11px -4px;
+    font-size: 50px;
+    display: block;
+}
+
 #scrubber {
-    width: 970px;
+    width: 1030px;
     border: 5px solid #222;
     height: 60px;
     float: left;
 }
+
+#screen img {
+    display: block;
+    position: relative;
+    user-drag: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+}
+
+#zoom {
+    clear: both;
+    float: right;
+    margin-top: 5px;
+}
+
+#zoom .reset.icon {
+    font-weight: bold;
+    font-size: 23px;
+    margin-top: -3px;
+}
+
+#zoom .icon {
+    font-size: 20px;
+    float: left;
+    margin-left: 5px;
+}
+

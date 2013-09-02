@@ -1,4 +1,6 @@
-class Tree
+root = exports ? this
+
+class root.Tree
     constructor: ->
         @root = null
         @index = {}
@@ -6,6 +8,20 @@ class Tree
     find: (key) =>
         if key of @index
             return @index[key].value
+        return null
+
+    searchPrev: (key) =>
+        if @root?
+            prev = @root.findPrev(key)
+            if prev?
+                return prev.value
+        return null
+
+    searchNext: (key) =>
+        if @root?
+            next = @root.findNext(key).value
+            if next?
+                return next.value
         return null
 
     insert: (key, value) =>
@@ -99,9 +115,31 @@ class TreeNode
             return @
         if key < @key and @left?
             return @left.find(key)
-        if @right?
+        if key > @key and @right?
             return @right.find(key)
         return null
+
+    findNearest: (key) =>
+        if key == @key
+            return @
+        if key < @key and @left?
+            return @left.findNearest(key)
+        if key > @key and @right?
+            return @right.findNearest(key)
+        return @
+
+    # TODO: fix this!
+    findPrev: (key) =>
+        nearest = @findNearest(key)
+        if nearest.key < key
+            return nearest
+        return nearest.next
+
+    findNext: (key) =>
+        nearest = @findNearest(key)
+        if nearest.key > key
+            return nearest
+        return nearest.prev
 
     insert: (node) =>
 
