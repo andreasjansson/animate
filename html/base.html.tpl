@@ -21,6 +21,7 @@
 
     <script src="/js/app/model/elementscollection.js"></script>
     <script src="/js/app/model/automation.js"></script>
+    <script src="/js/app/model/automationpoint.js"></script>
     <script src="/js/app/model/element.js"></script>
     <script src="/js/app/model/tree.js"></script>
     <script src="/js/app/model/time.js"></script>
@@ -36,6 +37,7 @@
     <script src="/js/app/view/automationgroup.js"></script>
     <script src="/js/app/view/automation.js"></script>
     <script src="/js/app/view/automationpoint.js"></script>
+    <script src="/js/app/view/save.js"></script>
     <script src="/js/app/view/dragger.js"></script>
   </body>
 </html>

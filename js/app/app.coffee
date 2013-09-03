@@ -10,3 +10,7 @@ $ ->
     window.elementsView = new ElementsView(elements: window.elements)
     window.automationsView = new AutomationsView(elements: window.elements, zoom: window.zoom)
     window.elementAdderView = new ElementAdderView(elements: window.elements)
+    window.saveView = new SaveView(elements: elements)
+
+    if DATA.data.elements
+        window.elements.unserialize(DATA.data.elements)

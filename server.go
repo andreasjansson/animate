@@ -109,15 +109,12 @@ func (p *Project) Load() error {
 
 func (p *Project) Update() error {
 	// requires Name and EditKey
-	result, err := dbExec(
-		"UPDATE projects SET data=? WHERE name=? AND key=?",
+	_, err := dbExec(
+		"UPDATE projects SET data=? WHERE name=? AND edit_key=?",
 		p.Data, p.Name, p.EditKey)
+	fmt.Print(err)
 	if err != nil {
 		return err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if rowsAffected == 0 {
-		return ErrProjectNotFound
 	}
 	return nil
 }
@@ -423,7 +420,7 @@ func EditSubmitHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name: "key-" + project.Name,
 		Value: project.EditKey,
-		Expires: time.Now().AddDate(0, 0, 1),
+		Expires: time.Now().AddDate(0, 0, 7),
 	})
 
 	http.Redirect(w, r, "/edit/" + project.Name, 302)
@@ -452,6 +449,10 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	if project.Data == "" {
+		project.Data = "{}"
+	}
+
 	data := map[string]template.JS{
 		"Name": template.JS(project.Name),
 		"Data": template.JS(project.Data),
@@ -469,21 +470,35 @@ func EditHandler(w http.ResponseWriter, r *http.Request) {
 func SaveHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.FormValue("name")
-	key := r.FormValue("key")
 	data := r.FormValue("data")
-	if name == "" || key == "" || data == "" {
-		http.Error(w, "missing attributes", http.StatusBadRequest)
+	if name == "" || data == "" {
+		http.Error(w, "Missing attributes", http.StatusBadRequest)
 		return
 	}
 
-	project := &Project{Name: name, Data: data, EditKey: key}
-	err := project.Update()
+	cookie, err := r.Cookie("key-" + name)
+	if err != nil {
+		http.Redirect(w, r, "Please re-authenticate" + name, 302)
+		return
+	}
+
+	project := &Project{Name: name, EditKey: cookie.Value}
+	err = project.Load()
 	if err != nil {
 		if err == ErrProjectNotFound {
 			http.NotFound(w, r)
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Print(err)
+			http.Error(w, "Database error", http.StatusInternalServerError)
 		}
+		return
+	}
+
+	project.Data = data
+	err = project.Update()
+	if err != nil {
+		fmt.Print(err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 

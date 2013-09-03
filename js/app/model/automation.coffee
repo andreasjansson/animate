@@ -18,7 +18,6 @@ class root.Automation extends Backbone.Model
         @recentPointIndex = null
 
         @get('time').on('change', @checkVisibleChange)
-        @addPoint(@get('time').get('time'), @get('element').get(@get('attribute')))
 
     addPoint: (time, value) =>
         time = Math.round(time * 10) / 10
@@ -45,9 +44,9 @@ class root.Automation extends Backbone.Model
 
             @trigger('newPoint', point)
 
-            visibleChange = @getVisibleChange(point)
-            if visibleChange?
-                @get('element').set(@attribute, visibleChange)
+        visibleChange = @getVisibleChange(point)
+        if visibleChange?
+            @get('element').set(@get('attribute'), visibleChange)
 
         return point
 
@@ -158,6 +157,13 @@ class root.Automation extends Backbone.Model
             @get('element').set(@get('attribute'), change, noAutomation: true)
 
     serialize: =>
+        obj = points: []
+        console.log(@points)
+        for point in @points
+            console.log(point, point.serialize())
+            obj.points.push(point.serialize())
+        return obj
 
     unserialize: (obj) =>
-        
+        for p in obj.points
+            @addPoint(p.time, p.value)

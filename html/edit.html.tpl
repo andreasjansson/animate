@@ -3,7 +3,7 @@
 <script src="/js/app/app.js"></script>
 
 <div id="left-panel">
-  <a href="#" class="save icon icon-save" title="Save!"></a>
+  <a href="#" id="save" class="save icon icon-save" title="Save!"></a>
   <a href="#" class="preview icon icon-rocket" title="Bounce!"></a>
 </div>
 
@@ -46,7 +46,7 @@
 <script>
     var DATA = {
         name: "{{.Name}}",
-        data: "{{.Data}}",
+        data: {{.Data}},
         audioURL: "{{.AudioURL}}",
         analysis: {{.Analysis}}
     };

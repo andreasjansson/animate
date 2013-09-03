@@ -1,6 +1,6 @@
 root = exports ? this
 
-class AutomationPoint extends Backbone.Model
+class root.AutomationPoint extends Backbone.Model
 
     defaults: ->
         'time': null
@@ -9,7 +9,4 @@ class AutomationPoint extends Backbone.Model
         '_originalTime': null
 
     serialize: =>
-        return time: @time, value: @value, interpolate: @interpolate
-
-    @unserialize: (o) ->
-        return new AutomationPoint(o)
+        return time: @get('time'), value: @get('value'), interpolate: @get('interpolate')
