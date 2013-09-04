@@ -14,8 +14,7 @@ class root.ScrubberView extends Backbone.View
 
     initialize: ->
         @duration = DATA.analysis.Duration
-        @time = @options['time']
-        @time.on('change:time', @setCurrentPosition)
+        CurrentTime.on('change:time', @setCurrentPosition)
         @zoom = @options['zoom']
         @zoom.on('change', @render)
 
@@ -116,9 +115,9 @@ class root.ScrubberView extends Backbone.View
     click: (x) =>
         scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
         time = x * scale + @zoom.get('start')
-        @time.set('time', time)
+        CurrentTime.set('time', time)
 
     setCurrentPosition: () =>
         scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
-        x = (@time.get('time') - @zoom.get('start')) / scale
+        x = (CurrentTime.get('time') - @zoom.get('start')) / scale
         @currentPosition.attr(x: x)

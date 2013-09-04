@@ -11,7 +11,6 @@ class root.SaveView extends Backbone.View
         data =
             elements: @options.elements.serialize()
         data = JSON.stringify(data)
-        console.log(data)
         $.post('/save', {name: DATA.name, data: data})
             .done(@success)
             .fail(@error)

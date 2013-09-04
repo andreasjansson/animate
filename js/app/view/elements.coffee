@@ -11,3 +11,4 @@ class root.ElementsView extends Backbone.View
     addElement: (element) =>
         view = new ElementView(element: element)
         view.$el.appendTo(@$el)
+        element.completeInitialization(imageWidth: view.width(), imageHeight: view.height())

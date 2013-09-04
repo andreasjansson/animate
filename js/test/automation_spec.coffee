@@ -1,9 +1,8 @@
 jasmine = require('jasmine-node')
-automation = require('./../app/model/automation')
-Automation = automation.Automation
-AutomationPoint = automation.AutomationPoint
+Automation = require('./../app/model/automation').Automation
 Element = require('./../app/model/element').Element
 Time = require('./../app/model/time').Time
+CurrentTime = require('./../app/model/time').CurrentTime
 
 describe 'automation.js', ->
 
@@ -11,26 +10,25 @@ describe 'automation.js', ->
         @element = new Element(url: 'http://example.com/foo.jpg')
         @automation = new Automation(element: @element, attribute: 'foo')
         @p = (time, value) -> new AutomationPoint(time: time, value: value, _originalTime: time)
-        Time.CurrentTime = 0
 
     it 'adds a point', ->
         @automation.addPoint(10, 10)
-        expect(@automation.get('points').size()).toEqual(1)
+        expect(@automation.points.length).toEqual(1)
         @automation.addPoint(20, 10)
-        expect(@automation.get('points').size()).toEqual(2)
+        expect(@automation.points.length).toEqual(2)
         @automation.addPoint(10, 5)
-        expect(@automation.get('points').size()).toEqual(2)
-        expect(@automation.get('points').find(10).get('value')).toEqual(5)
+        expect(@automation.points.length).toEqual(2)
+        expect(@automation.points[@automation.getIndexNear(10)].get('value')).toEqual(5)
 
     it 'deletes a point', ->
         @automation.addPoint(10, 10)
-        expect(@automation.get('points').size()).toEqual(1)
+        expect(@automation.points.length).toEqual(1)
         @automation.addPoint(20, 10)
-        expect(@automation.get('points').size()).toEqual(2)
+        expect(@automation.points.length).toEqual(2)
         @automation.deletePoint(10)
-        expect(@automation.get('points').size()).toEqual(1)
+        expect(@automation.points.length).toEqual(1)
         @automation.deletePoint(20)
-        expect(@automation.get('points').size()).toEqual(0)
+        expect(@automation.points.length).toEqual(0)
 
     it 'interpolates', ->
         expect(@automation.interpolate(@p(0, 0), @p(10, 100), 5)).toEqual(50)
@@ -40,7 +38,7 @@ describe 'automation.js', ->
         expect(@automation.interpolate(@p(0, 0), @p(10, 100), 10)).toEqual(100)
 
     it 'gets a visible change with interpolation', ->
-        Time.CurrentTime = 10
+        CurrentTime.set('time', 10)
         point = @automation.addPoint(0, 10)
         expect(@automation.getVisibleChange(point)).toEqual(10)
         point = @automation.addPoint(0, 0)
@@ -51,7 +49,7 @@ describe 'automation.js', ->
         expect(@automation.getVisibleChange(point)).toEqual(15)
 
     it 'gets a visible change without interpolation', ->
-        Time.CurrentTime = 10
+        CurrentTime.set('time', 10)
         point = @automation.addPoint(0, 10)
         expect(@automation.getVisibleChange(point)).toEqual(10)
         point = @automation.addPoint(0, 0)
@@ -63,7 +61,7 @@ describe 'automation.js', ->
         expect(@automation.getVisibleChange(point)).toEqual(10)
 
     it 'gets an invisible change', ->
-        Time.CurrentTime = 10
+        CurrentTime.set('time', 10)
         point = @automation.addPoint(20, 10)
         expect(@automation.getVisibleChange(point)).toBeFalsy()
         @automation.addPoint(0, 0)
@@ -75,13 +73,51 @@ describe 'automation.js', ->
         point = @automation.addPoint(15, -10)
         expect(@automation.getVisibleChange(point)).toBeFalsy()
 
-    it 'gets a visible change around', ->
-        Time.CurrentTime = 5
-        point1 = @automation.addPoint(0, 0)
-        point2 = @automation.addPoint(10, 100)
-        point3 = @automation.addPoint(20, -100)
-        expect(@automation.getVisibleChangeAround(point1, point2)).toEqual(50)
-        expect(@automation.getVisibleChangeAround(point2, point3)).toBeFalsy()
-        expect(@automation.getVisibleChangeAround(point1, point3)).toEqual(50)
-        Time.CurrentTime = 15
-        expect(@automation.getVisibleChangeAround(point1, point3)).toEqual(0)
+    it 'gets a value near', ->
+        @automation.addPoint(0, 0)
+        @automation.addPoint(10, 100)
+        @automation.addPoint(20, 300)
+        @automation.addPoint(30, 0)
+
+        spyOn(@automation, 'getIndexNear').andCallThrough()
+
+        expect(@automation.recentPointIndex).toEqual(0)
+        expect(@automation.getValueNear(0)).toEqual(0)
+        expect(@automation.recentPointIndex).toEqual(0)
+        expect(@automation.getIndexNear).not.toHaveBeenCalled()
+
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(5)).toEqual(50)
+        expect(@automation.recentPointIndex).toEqual(0)
+        expect(@automation.getIndexNear).not.toHaveBeenCalled()
+
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(7)).toEqual(70)
+        expect(@automation.recentPointIndex).toEqual(0)
+        expect(@automation.getIndexNear).not.toHaveBeenCalled()
+       
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(11)).toEqual(120)
+        expect(@automation.recentPointIndex).toEqual(1)
+        expect(@automation.getIndexNear).not.toHaveBeenCalled()
+        
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(3)).toEqual(30)
+        expect(@automation.recentPointIndex).toEqual(0)
+        expect(@automation.getIndexNear).toHaveBeenCalled()
+        
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(50)).toEqual(0)
+        expect(@automation.recentPointIndex).toEqual(3)
+        expect(@automation.getIndexNear).toHaveBeenCalled()
+        
+        @automation.getIndexNear.reset()
+        
+        expect(@automation.getValueNear(60)).toEqual(0)
+        expect(@automation.recentPointIndex).toEqual(3)
+        expect(@automation.getIndexNear).not.toHaveBeenCalled()

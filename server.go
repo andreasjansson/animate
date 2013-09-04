@@ -112,7 +112,6 @@ func (p *Project) Update() error {
 	_, err := dbExec(
 		"UPDATE projects SET data=? WHERE name=? AND edit_key=?",
 		p.Data, p.Name, p.EditKey)
-	fmt.Print(err)
 	if err != nil {
 		return err
 	}
@@ -542,8 +541,8 @@ func route() {
 
 	http.Handle("/", r)
 
-	fmt.Println("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println("Listening on :8888")
+	log.Fatal(http.ListenAndServe(":8888", nil))
 }
 
 func main() {

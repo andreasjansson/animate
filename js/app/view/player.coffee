@@ -30,7 +30,7 @@ class root.PlayerView extends Backbone.View
         return false
 
     togglePlay: =>
-        console.log @player.isPlaying()
+
         if @player.isPlaying()
             @pause()
         else

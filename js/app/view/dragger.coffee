@@ -12,7 +12,6 @@ class root.Dragger extends Backbone.View
         @startAbsY = mouseDownEvent.pageY
         @startRelX = @startAbsX - @offset.x
         @startRelY = @startAbsY - @offset.y
-        console.log(paddingLeft)
         @grabOffset =
             x: @startAbsX - $(mouseDownEvent.target).offset().left - parseInt(@$rel.css('margin-left'))
             y: @startAbsY - $(mouseDownEvent.target).offset().top - parseInt(@$rel.css('margin-top'))

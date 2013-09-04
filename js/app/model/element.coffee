@@ -1,6 +1,8 @@
 `try { window } catch(e) { // running on node
     _ = require('./../../node_modules/underscore');
     Backbone = require('./../../node_modules/backbone');
+    Automation = require('./automation').Automation;
+    CurrentTime = require('./time').CurrentTime;
 }`
 root = exports ? this
 
@@ -9,6 +11,8 @@ class root.Element extends Backbone.Model
 
     defaults: ->
         'url': null
+        'imageWidth': null
+        'imageHeight': null
         'x': 0,
         'y': 0,
         'width': 0
@@ -17,34 +21,48 @@ class root.Element extends Backbone.Model
         'rotation': 0
         'zIndex': 0
 
-    attrs:
-        [['x', 700], # TODO: make less horrid
-         ['y', 393],
-         ['width', 700],
-         ['height', 393],
-         ['opacity', 1],
-         ['rotation', 360],
-         ['zIndex', 20]]
+    attributeSpecs:
+        [['x', ((e) -> e.get('imageWidth') / 2), 700],
+         ['y', ((e) -> e.get('imageHeight') / 2), 393],
+         ['width', ((e) -> e.get('imageWidth')), 700],
+         ['height', ((e) -> e.get('imageWidth')), 393],
+         ['opacity', 1, 1],
+         ['rotation', 0, 360],
+         ['zIndex', 10, 20]]
 
-    initialize: (attrs, options) ->
+    initialize: (attrs) ->
         @automations = {}
-        for [attr, maxValue] in @attrs
+
+    # we need the view to tell us the width and height before we
+    # can create the automation
+    completeInitialization: (extraAttrs, options) ->
+        @set(extraAttrs)
+        for [attr, defaultValue, maxValue] in @attributeSpecs
             do (attr) =>
-                automation = new Automation(element: @, attribute: attr, time: @get('time'), maxValue: maxValue)
+                @set(attr, defaultValue?(@))
+
+                automation = new Automation
+                    element: @
+                    attribute: attr
+                    maxValue: maxValue
+
                 if not (options and options.noInitial)
-                    automation.addPoint(@get('time').get('time'), @get('attribute'))
+                    automation.addPoint(CurrentTime.get('time'), defaultValue?(@))
                 @on 'change:' + attr, (element, value, options) =>
                     if not options.noAutomation
-                        automation.addPoint(@get('time').get('time'), @get(attr))
+                        automation.addPoint(CurrentTime.get('time'), @get(attr))
                 @automations[attr] = automation
 
     serialize: =>
-        obj = url: @get('url'), automations: {}
+        obj =
+            url: @get('url')
+            imageWidth: @get('imageWidth')
+            imageHeight: @get('imageHeight')
+            automations: {}
         for attr, automation of @automations
-            console.log(attr, automation)
             obj.automations[attr] = automation.serialize()
         return obj
 
-    unserialize: (obj) ->
+    deserialize: (obj) ->
         for attr, automation of @automations
-            @automations[attr].unserialize(obj.automations[attr])
+            @automations[attr].deserialize(obj.automations[attr])

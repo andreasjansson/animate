@@ -14,4 +14,3 @@ class root.AutomationsView extends Backbone.View
             view = new AutomationView(automation: automation)
             group.add(view)
         group.$el.appendTo(@$el)
-        console.log(@$el)

@@ -23,7 +23,6 @@
     <script src="/js/app/model/automation.js"></script>
     <script src="/js/app/model/automationpoint.js"></script>
     <script src="/js/app/model/element.js"></script>
-    <script src="/js/app/model/tree.js"></script>
     <script src="/js/app/model/time.js"></script>
     <script src="/js/app/model/player.js"></script>
     <script src="/js/app/model/zoom.js"></script>

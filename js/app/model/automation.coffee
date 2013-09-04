@@ -1,29 +1,30 @@
-` try { window } catch(e) { // running on node
+`try { window } catch(e) { // running on node
     _ = require('./../../node_modules/underscore');
     Backbone = require('./../../node_modules/backbone');
-    Tree = require('./tree').Tree;
+    AutomationPoint = require('./automationpoint').AutomationPoint;
+    CurrentTime = require('./time').CurrentTime;
 }`
 root = exports ? this
 
 class root.Automation extends Backbone.Model
 
-    defaults: ->
+    defaults: =>
         'element': null
         'attribute': null
         'points': null
 
     initialize: ->
         @points = []
-        @pointsIndex = {}
-        @recentPointIndex = null
+        @recentPointIndex = 0 # caching
 
-        @get('time').on('change', @checkVisibleChange)
+        CurrentTime.on('change', @checkVisibleChange)
 
     addPoint: (time, value) =>
         time = Math.round(time * 10) / 10
-        existing = @points[@pointsIndex[time]]
-        if existing?
-            point = existing
+        index = @getIndexNear(time)
+
+        if index? and @points[index].get('time') == time
+            point = @points[index]
             point.set('value', value)
 
         else
@@ -35,25 +36,26 @@ class root.Automation extends Backbone.Model
             for p, i in @points
                 if time < p.get('time')
                     @points.splice(i, 0, point)
-                    @pointsIndex[time] = i
+                    index = i
                     inserted = true
                     break
             if not inserted
+                index = @points.length - 1
                 @points.push(point)
-                @pointsIndex[time] = @points.length - 1
 
             @trigger('newPoint', point)
 
-        visibleChange = @getVisibleChange(point)
+        visibleChange = @getVisibleChange(point, index)
         if visibleChange?
             @get('element').set(@get('attribute'), visibleChange)
 
         return point
 
     deletePoint: (time) =>
-        i = @pointsIndex[time]
-        @points.splice(i, 1)
-        delete @pointsIndex[time]
+        time = Math.round(time * 10) / 10
+        index = @getIndexNear(time)
+        if index? and @points[index].get('time') == time
+            @points.splice(index, 1)
 
     changePointTime: (point, time) =>
         # for now, optimise later
@@ -61,38 +63,42 @@ class root.Automation extends Backbone.Model
         @addPoint(time, point.get('value'))
 
     changePointValue: (point, value) =>
-        visibleChange = @getVisibleChange(point)
+        index = @getIndexNear(point.get('time'))
+        visibleChange = @getVisibleChange(point, index)
         if visibleChange?
             @get('element').set(@get('attribute'), visibleChange, noAutomation: true)
 
-    getVisibleChange: (current) =>
+    getVisibleChange: (current, index) =>
+        if !index?
+            index = @getIndexNear(current.get('time'))
+
         time = current.get('time')
         interpolationPoints = null
 
-        if Time.CurrentTime == time
+        if CurrentTime.get('time') == time
             return current.get('value')
 
-        else if Time.CurrentTime < time
-            before = @points[@pointsIndex[time] - 1]
+        else if CurrentTime.get('time') < time
+            before = @points[index - 1]
 
             if not before?
                 return null
 
-            if Time.CurrentTime > before.get('time')
+            if CurrentTime.get('time') > before.get('time')
                 if before.get('interpolate')
-                    return @interpolate(before, current, Time.CurrentTime)
+                    return @interpolate(before, current, CurrentTime.get('time'))
                 else
                     return before.get('value')
 
         else
-            after = @points[@pointsIndex[time] + 1]
+            after = @points[index + 1]
             if not after?
                 return current.get('value')
 
-            if Time.CurrentTime < after.get('time')
+            if CurrentTime.get('time') < after.get('time')
                 if not current.get('interpolate')
                     return current.get('value')
-                return @interpolate(current, after, Time.CurrentTime)
+                return @interpolate(current, after, CurrentTime.get('time'))
 
         return null
             
@@ -103,67 +109,81 @@ class root.Automation extends Backbone.Model
         value = (after.get('value') - before.get('value')) * factor + before.get('value')
         return value
 
-    getVisibleChangeNear: (time) =>
+    getValueNear: (time) =>
         # TODO: non-interpolated case
-        if time of @pointsIndex
-            return @points[@pointsIndex[time]].get('value')
 
         # try the most recent one, if it's not there do a binary search
-        if @recentPointIndex?
-            recentPoint = @points[@recentPointIndex]
+        recentPoint = @points[@recentPointIndex]
+        if recentPoint?
+            if time == recentPoint.get('time')
+                return recentPoint.get('value')
             if time > recentPoint.get('time')
                 nextPoint = @points[@recentPointIndex + 1]
                 if not nextPoint?
                     return recentPoint.get('value')
                 if recentPoint.get('time') < time and nextPoint.get('time') > time
                     return @interpolate(recentPoint, nextPoint, time)
+                if time == nextPoint.get('time')
+                    return nextPoint.get('value')
                 if time > nextPoint.get('time')
                     followingPoint = @points[@recentPointIndex + 2]
                     if not followingPoint?
                         @recentPointIndex += 1
                         return nextPoint.get('value')
-                    if followingPoint.get('time') > time
+                    if time < followingPoint.get('time')
                         @recentPointIndex += 1
                         return @interpolate(nextPoint, followingPoint, time)
 
-        start = 0
-        end = @points.length
-        mid = 0
-        while start < end - 1
-            mid = Math.floor((end - start) / 2) + start
-            if time < @points[mid].get('time')
-                end = mid
-            else
-                start = mid
+        index = @getIndexNear(time)
+        if !index?
+            return null
 
-        if @get('attribute') == 'x'
-            console.log(mid)
+        point = @points[index]
 
-        @recentPointIndex = mid
-        point = @points[mid]
+        if time == point.get('time')
+            @recentPointIndex = index
+            return point.get('value')
+
         if time < point.get('time')
-            prev = @points[mid - 1]
+            prev = @points[index - 1]
             if not prev?
                 return null
+            @recentPointIndex = index - 1
             return @interpolate(prev, point, time)
-        next = @points[mid + 1]
+        next = @points[index + 1]
+        @recentPointIndex = index
         if not next?
             return point.get('value')
         return @interpolate(point, next, time)
 
     checkVisibleChange: (time) =>
-        change = @getVisibleChangeNear(time.get('time'))
+        change = @getValueNear(time.get('time'))
         if change?
             @get('element').set(@get('attribute'), change, noAutomation: true)
 
+    getIndexNear: (time) =>
+        if !@points.length
+            return null
+
+        start = 0
+        end = @points.length
+        mid = null
+        while start <= end and start < @points.length
+            mid = Math.floor((end - start) / 2) + start
+            if @points[mid].get('time') == time
+                return mid
+            if time < @points[mid].get('time')
+                end = mid - 1
+            else
+                start = mid + 1
+        return mid
+
     serialize: =>
         obj = points: []
-        console.log(@points)
         for point in @points
-            console.log(point, point.serialize())
             obj.points.push(point.serialize())
         return obj
 
-    unserialize: (obj) =>
+    deserialize: (obj) =>
         for p in obj.points
             @addPoint(p.time, p.value)

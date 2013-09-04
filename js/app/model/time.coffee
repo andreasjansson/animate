@@ -4,15 +4,11 @@
 }`
 root = exports ? this
 
-
 class root.Time extends Backbone.Model
+
+    @FPS: 20
 
     defaults: ->
         time: 0
-        fps: 20
 
-
-try
-    window and window.document
-catch # running on node
-    exports.Time = Time
+root.CurrentTime = new root.Time()
