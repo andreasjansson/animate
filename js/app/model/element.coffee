@@ -25,7 +25,7 @@ class root.Element extends Backbone.Model
         [['x', ((e) -> e.get('imageWidth') / 2), 700],
          ['y', ((e) -> e.get('imageHeight') / 2), 393],
          ['width', ((e) -> e.get('imageWidth')), 700],
-         ['height', ((e) -> e.get('imageWidth')), 393],
+         ['height', ((e) -> e.get('imageHeight')), 393],
          ['opacity', 1, 1],
          ['rotation', 0, 360],
          ['zIndex', 10, 20]]
@@ -39,7 +39,7 @@ class root.Element extends Backbone.Model
         @set(extraAttrs)
         for [attr, defaultValue, maxValue] in @attributeSpecs
             do (attr) =>
-                @set(attr, defaultValue?(@))
+                @set(attr, defaultValue?(@) ? defaultValue)
 
                 automation = new Automation
                     element: @
@@ -52,6 +52,7 @@ class root.Element extends Backbone.Model
                     if not options.noAutomation
                         automation.addPoint(CurrentTime.get('time'), @get(attr))
                 @automations[attr] = automation
+        @trigger('initializationComplete')
 
     serialize: =>
         obj =

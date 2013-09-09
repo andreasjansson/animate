@@ -3,17 +3,17 @@ root = exports ? this
 class root.AutomationView extends Backbone.View
 
     initialize: ->
-        @automation = options['automation']
+        @automation = @options['automation']
         @points = []
         html = _.template $('#automation-template').html(),
-            url: @automation.get('attribute')
+            attribute: @automation.get('attribute')
         @$el = $(html)
 
         @automation.on('newPoint', @newPoint)
 
-    newPoint: (point) ->
+    newPoint: (point) =>
         scale =
-            x: @$el.width() / DATA.analysis.Duration
-            y: @$el.height() / @automation.maxValue
+            x: @$('.timeline').width() / DATA.analysis.Duration
+            y: @$('.timeline').height() / @automation.get('maxValue')
         view = new AutomationPointView(point: point, scale: scale)
-        view.$el.appendTo(@$el)
+        view.$el.appendTo(@$('.timeline'))

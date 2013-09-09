@@ -4,7 +4,6 @@
     <link rel="stylesheet" href="/css/reset.css" />
     <link rel="stylesheet" href="/css/style.css" />
     <script src="//use.edgefonts.net/londrina-shadow;quicksand.js"></script>
-<!--    <link rel="stylesheet" href="/css/elusive-iconfont/css/elusive-webfont.css" /> -->
     <link rel="stylesheet" href="/css/font-awesome/css/font-awesome.min.css" />
 
     <script src="/js/lib/jquery/jquery.min.js"></script>

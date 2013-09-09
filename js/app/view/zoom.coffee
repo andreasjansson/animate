@@ -13,7 +13,6 @@ class root.ZoomView extends Backbone.View
 
     initialize: ->
         @zoom = @options['zoom']
-        @time = @options['time']
 
     zoomOut: ->
         space = @zoom.get('end') - @zoom.get('start')
@@ -22,17 +21,20 @@ class root.ZoomView extends Backbone.View
         @zoom.set
             start: mid - space / 2
             end: mid + space / 2
+        return false
 
     zoomIn: ->
         space = @zoom.get('end') - @zoom.get('start')
-        if @time.get('time') >= @zoom.get('start') and @time.get('time') <= @zoom.get('end')
-            mid = @time.get('time')
+        if CurrentTime.get('time') >= @zoom.get('start') and CurrentTime.get('time') <= @zoom.get('end')
+            mid = CurrentTime.get('time')
         else
             mid = (@zoom.get('end') + @zoom.get('start')) / 2
         space /= ZOOM_FACTOR
         @zoom.set
             start: mid - space / 2
             end: mid + space / 2
+        return false
 
     reset: ->
         @zoom.reset()
+        return false

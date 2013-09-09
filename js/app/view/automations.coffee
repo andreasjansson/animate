@@ -6,11 +6,12 @@ class root.AutomationsView extends Backbone.View
 
     initialize: ->
         @elements = @options['elements']
-        @elements.on('add', @addElement)
+        @elements.on('addComplete', @addElement)
 
     addElement: (element) =>
         group = new AutomationGroupView(element: element)
-        for automation in element.automations
+        group.$el.appendTo(@$el)
+        group.scaleTitleImg()
+        for attr, automation of element.automations
             view = new AutomationView(automation: automation)
             group.add(view)
-        group.$el.appendTo(@$el)

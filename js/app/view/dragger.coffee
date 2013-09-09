@@ -2,23 +2,38 @@ root = exports ? this
 
 class root.Dragger extends Backbone.View
 
-    constructor: (mouseDownEvent, $relative) ->
-        @$rel = $relative
+    constructor: ($el, $rel) ->
+        @$el = $el
+        @$rel = $rel or $el
+        @$el.on('mousedown', @mouseDown)
+
+    mouseDown: (evt) =>
+        target = $(evt.target)
         offset = @$rel.offset()
-        paddingLeft = parseInt(@$rel.css('margin-left')) + parseInt(@$rel.css('padding-left')) + parseInt(@$rel.css('border-left-width'))
-        paddingTop = parseInt(@$rel.css('margin-top')) + parseInt(@$rel.css('padding-top')) + parseInt(@$rel.css('border-top-width'))
+        paddingLeft = parseInt(parseInt(@$rel.css('border-left-width')))
+        paddingTop = parseInt(parseInt(@$rel.css('border-top-width')))
         @offset = x: offset.left + paddingLeft, y: offset.top + paddingTop
-        @startAbsX = mouseDownEvent.pageX
-        @startAbsY = mouseDownEvent.pageY
+        @startAbsX = evt.pageX
+        @startAbsY = evt.pageY
         @startRelX = @startAbsX - @offset.x
         @startRelY = @startAbsY - @offset.y
+
         @grabOffset =
-            x: @startAbsX - $(mouseDownEvent.target).offset().left - parseInt(@$rel.css('margin-left'))
-            y: @startAbsY - $(mouseDownEvent.target).offset().top - parseInt(@$rel.css('margin-top'))
+            x: @startAbsX - @$el.offset().left
+            y: @startAbsY - @$el.offset().top
         @startTime = new Date().getTime() / 1000
 
         $(document).on('mousemove', @mouseMove)
         $(document).one('mouseup', @mouseUp)
+
+        @trigger 'start',
+            absX: @startAbsX
+            absY: @startAbsY
+            relX: @startRelX
+            relY: @startRelY
+
+        evt.preventDefault()
+        return false
 
     mouseMove: (evt) =>
         absX = evt.pageX
@@ -39,6 +54,8 @@ class root.Dragger extends Backbone.View
             startRelY: @startRelY
             grabRelX: relX - @grabOffset.x
             grabRelY: relY - @grabOffset.y
+        evt.preventDefault()
+        return false
 
     mouseUp: (evt) =>
         $(document).off('mousemove', @mouseMove)
@@ -63,4 +80,5 @@ class root.Dragger extends Backbone.View
             grabRelX: relX - @grabOffset.x
             grabRelY: relY - @grabOffset.y
 
-        @off()
+        evt.preventDefault()
+        return false

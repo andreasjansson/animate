@@ -6,50 +6,59 @@ class root.ElementView extends Backbone.View
         @element = @options['element']
         @element.on('change', @render)
 
-        @$el = $('<img src="' + @element.get('url') + '" />')
-        @$el.on 'mousedown', @startDrag
+        html = _.template $('#element-template').html(),
+            url: @element.get('url')
+        @$el = $(html)
+        @$img = @$('img')
+        window.el1 = @
+
+        @dragger = new Dragger(@$el, $('#screen'))
+        @dragger.on('move', @drag)
+        @dragger.on('release', @release)
 
     render: (element) =>
         changes = element.changed
         cssChanges = {}
         if 'x' of changes
-            cssChanges['left'] = changes['x']
+            @$el.css('left', changes.x)
         if 'y' of changes
-            cssChanges['top'] = changes['y']
+            @$el.css('top', changes.y)
         if 'width' of changes
-            cssChanges['width'] = changes['width']
+            @$img.css('width', changes.width)
+            @$img.css('left', -changes.width / 2)
         if 'height' of changes
-            cssChanges['height'] = changes['height']
+            @$img.css('height', changes.height)
+            @$img.css('top', -changes.height / 2)
         if 'opacity' of changes
-            cssChanges['opacity'] = changes['opacity']
+            @$el.css('opacity', changes.opacity)
         if 'rotation' of changes
-            rotation = changes['rotation']
+            rotation = changes.rotation
             rotateString = 'rotate(#{rotation}deg)'
-            cssChanges['-webkit-transform'] = rotateString
-            cssChanges['-moz-transform'] = rotateString
-            cssChanges['-ms-transform'] = rotateString
-            cssChanges['-o-transform'] = rotateString
+            @$el.css('-webkit-transform', rotateString)
+            @$el.css('-moz-transform', rotateString)
+            @$el.css('-ms-transform', rotateString)
+            @$el.css('-o-transform', rotateString)
         if 'zIndex' of changes
-            cssChanges['z-index'] = changes['zIndex']
+            @$el.css('z-index', changes.zIndex)
 
         if cssChanges
             @$el.css(cssChanges)
 
         if 'url' of changes
-            @$el.attr('src', url)
+            @$img.attr('src', url)
+
+    close: =>
+        @dragger.off()
 
     width: =>
-        return @$el.width()
+        return @$img.width()
 
     height: =>
-        return @$el.height()
+        return @$img.height()
 
     # TODO: disable interpolation while we're dragging
     startDrag: (evt) =>
-        dragger = new Dragger(evt, $('#screen'))
-        dragger.on('move', @drag)
-        dragger.on('release', @release)
-        evt.preventDefault()
+        
 
     drag: (evt) =>
         @element.set(x: evt.grabRelX, y: evt.grabRelY)

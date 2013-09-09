@@ -538,6 +538,7 @@ func route() {
 	http.Handle("/js/app/", CoffeeFileServer(path("")))
 	http.Handle("/js/lib/", http.FileServer(http.Dir(path(""))))
 	http.Handle("/css/", http.FileServer(http.Dir(path(""))))
+	http.Handle("/static/", http.FileServer(http.Dir(path(""))))
 
 	http.Handle("/", r)
 

@@ -9,9 +9,6 @@ class root.ScrubberView extends Backbone.View
 
     el: '#scrubber'
 
-    events:
-        'mousedown': 'mouseDown'
-
     initialize: ->
         @duration = DATA.analysis.Duration
         CurrentTime.on('change:time', @setCurrentPosition)
@@ -20,6 +17,11 @@ class root.ScrubberView extends Backbone.View
 
         @paper = Raphael(@$el[0], @$el.width(), @$el.height())
         @buildScrubber()
+
+        @dragger = new Dragger(@$el)
+        @dragger.on('start', @mouseDown)
+        @dragger.on('move', @drag)
+        @dragger.on('release', @release)
 
     buildScrubber: =>
 
@@ -47,7 +49,7 @@ class root.ScrubberView extends Backbone.View
                 break
 
             if level == 2
-                hue = (hue + 0.43) % 1
+                hue = (hue + 0.58) % 1
             saturation = 0.6
             if level >= 1
                 oddBeat = true
@@ -83,11 +85,8 @@ class root.ScrubberView extends Backbone.View
         return points
 
     mouseDown: (evt) =>
-        dragger = new Dragger(evt, @$el)
-        @zoomRect = @paper.rect(dragger.startX, 0, 0, @$el.height())
+        @zoomRect = @paper.rect(evt.absX, 0, 0, @$el.height())
         @zoomRect.attr(stroke: 0, 'fill-opacity': 0.5, fill: '#222222')
-        dragger.on('move', @drag)
-        dragger.on('release', @release)
 
     release: (evt) =>
         @zoomRect.remove()

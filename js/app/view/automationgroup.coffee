@@ -14,9 +14,28 @@ class root.AutomationGroupView extends Backbone.View
         @views = []
         @collapsed = true
 
+    scaleTitleImg: =>
+        $img = @$('.title img')
+        maxWidth = 40
+        maxHeight = 50
+        width = $img.width()
+        height = $img.height()
+        console.log($img, width, height)
+        if width > maxWidth or height > maxHeight
+            aspect = width / height
+            boxAspect = maxWidth / maxHeight
+            if aspect < boxAspect
+                scale = maxHeight / height
+            else
+                scale = maxWidth / width
+            width = width * scale
+            height = height * scale
+            $img.width(width)
+            $img.height(height)
+
     add: (view) =>
-        @views.add(view)
-        @view.$el.appendTo(@$('.group'))
+        @views.push(view)
+        view.$el.appendTo(@$el)
 
     collapse: =>
         @$el.removeClass('expanded')

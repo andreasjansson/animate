@@ -15,7 +15,7 @@
   <div id="add-element" class="panel">
     <h2>Add an image</h2>
     <form>
-      <input type="text" class="url text" />
+      <input type="text" class="url text" value="http://localhost:8888/static/frognotes.gif" />
     </form>
   </div>
   <div id="options" class="panel">
@@ -43,24 +43,9 @@
 <div id="automations">
 </div>
 
-<script>
-    var DATA = {
-        name: "{{.Name}}",
-        data: {{.Data}},
-        audioURL: "{{.AudioURL}}",
-        analysis: {{.Analysis}}
-    };
-
-    soundManager.setup({
-        url: '/js/lib/soundmanager/swf',
-        debugMode: false,
-    })
-
-</script>
-
 <script type="text/template" id="automation-group-template">
-  <div class="group">
-    <div class="group-backdrop">
+  <div class="automation-group">
+    <div class="group-backdrop automation">
       <div class="element-title title">
         <img src="<%= url %>" />
       </div>
@@ -83,6 +68,27 @@
 <script type="text/template" id="automation-point-template">
   <div class="automation-point">
   </div>
+</script>
+
+<script type="text/template" id="element-template">
+  <div class="element">
+    <img src="<%= url %>" />
+  </div>
+</script>
+
+<script>
+    var DATA = {
+        name: "{{.Name}}",
+        data: {{.Data}},
+        audioURL: "{{.AudioURL}}",
+        analysis: {{.Analysis}}
+    };
+
+    soundManager.setup({
+        url: '/js/lib/soundmanager/swf',
+        debugMode: false,
+    })
+
 </script>
 
 {{end}}

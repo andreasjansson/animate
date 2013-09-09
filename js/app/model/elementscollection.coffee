@@ -10,6 +10,7 @@ class root.ElementsCollection extends Backbone.Collection
 
     addElement: (url) =>
         element = new Element(url: url)
+        element.once('initializationComplete', -> @trigger('addComplete', element))
         @add(element)
         return element
 
