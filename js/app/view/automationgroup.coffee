@@ -20,7 +20,6 @@ class root.AutomationGroupView extends Backbone.View
         maxHeight = 50
         width = $img.width()
         height = $img.height()
-        console.log($img, width, height)
         if width > maxWidth or height > maxHeight
             aspect = width / height
             boxAspect = maxWidth / maxHeight

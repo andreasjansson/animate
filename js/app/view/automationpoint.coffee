@@ -12,6 +12,7 @@ class root.AutomationPointView extends Backbone.View
         html = _.template $('#automation-point-template').html(),
             value: @point.get('value')
         @$el = $(html)
+        @render()
 
     render: =>
         x = @point.get('time') * @scale.x

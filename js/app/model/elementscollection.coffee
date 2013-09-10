@@ -8,21 +8,16 @@ root = exports ? this
 
 class root.ElementsCollection extends Backbone.Collection
 
-    addElement: (url) =>
+    addElement: (url, options) =>
         element = new Element(url: url)
-        element.once('initializationComplete', -> @trigger('addComplete', element))
-        @add(element)
+        @add(element, options)
         return element
 
     serialize: =>
         return (e.serialize() for e in @models)
 
-    deserialize: (obj) ->
+    deserialize: (obj) =>
         for el in obj
-            element = new Element(url: el.url, time: @time)
-            element.completeInitialization(
-                {imageWidth: el.imageWidth, imageHeight: el.imageHeight},
-                {noInitial: true})
-            @add(element)
+            element = @addElement(el.url)
             element.deserialize(el)
         return element

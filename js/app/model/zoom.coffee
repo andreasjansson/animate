@@ -6,7 +6,7 @@ class root.Zoom extends Backbone.Model
         start: 0
         end: DATA.analysis.Duration
 
-    set: (key, val, options) ->
+    set: (key, val, options) =>
         if typeof key == 'object'
             attrs = key
             options = val
@@ -27,5 +27,5 @@ class root.Zoom extends Backbone.Model
 
         super(attrs, options)
 
-    reset: ->
+    reset: =>
         @set(start: 0, end: DATA.analysis.Duration)

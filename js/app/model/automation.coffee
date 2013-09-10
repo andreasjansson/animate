@@ -19,16 +19,20 @@ class root.Automation extends Backbone.Model
 
         CurrentTime.on('change', @checkVisibleChange)
 
-    addPoint: (time, value) =>
-        time = Math.round(time * 10) / 10
+    addPoint: (time, value, interpolate=true) =>
         index = @getIndexNear(time)
 
         if index? and @points[index].get('time') == time
             point = @points[index]
             point.set('value', value)
+            point.set('interpolate', interpolate)
 
         else
-            point = new AutomationPoint(time: time, value: value, _originalTime: time)
+            point = new AutomationPoint
+                time: time
+                value: value
+                interpolate: interpolate
+                _originalTime: time
             point.on('change:time', @changePointTime)
             point.on('change:value', @changePointValue)
 
@@ -85,10 +89,7 @@ class root.Automation extends Backbone.Model
                 return null
 
             if CurrentTime.get('time') > before.get('time')
-                if before.get('interpolate')
-                    return @interpolate(before, current, CurrentTime.get('time'))
-                else
-                    return before.get('value')
+                return @interpolate(before, current, CurrentTime.get('time'))
 
         else
             after = @points[index + 1]
@@ -96,14 +97,12 @@ class root.Automation extends Backbone.Model
                 return current.get('value')
 
             if CurrentTime.get('time') < after.get('time')
-                if not current.get('interpolate')
-                    return current.get('value')
                 return @interpolate(current, after, CurrentTime.get('time'))
 
         return null
             
     interpolate: (before, after, time) =>
-        if before.get('value') == after.get('value')
+        if before.get('value') == after.get('value') or not before.get('interpolate')
             return before.get('value')
         factor = (time - before.get('time')) / (after.get('time') - before.get('time'))
         value = (after.get('value') - before.get('value')) * factor + before.get('value')

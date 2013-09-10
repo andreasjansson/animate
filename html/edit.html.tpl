@@ -80,6 +80,7 @@
     var DATA = {
         name: "{{.Name}}",
         data: {{.Data}},
+        data: {},
         audioURL: "{{.AudioURL}}",
         analysis: {{.Analysis}}
     };

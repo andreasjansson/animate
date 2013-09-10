@@ -8,7 +8,7 @@
 
     <script src="/js/lib/jquery/jquery.min.js"></script>
     <script src="/js/lib/underscore/underscore-min.js"></script>
-    <script src="/js/lib/backbone/backbone-min.js"></script>
+    <script src="/js/lib/backbone/backbone.js"></script>
     <script src="/js/lib/raphael/raphael-min.js"></script>
     <script src="/js/lib/soundmanager/script/soundmanager2-jsmin.js"></script>
   </head>

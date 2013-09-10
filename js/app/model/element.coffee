@@ -35,24 +35,24 @@ class root.Element extends Backbone.Model
 
     # we need the view to tell us the width and height before we
     # can create the automation
-    completeInitialization: (extraAttrs, options) ->
-        @set(extraAttrs)
+    completeInitialization: (imageWidth, imageHeight) =>
+        @set(imageWidth: imageWidth, imageHeight: imageHeight)
         for [attr, defaultValue, maxValue] in @attributeSpecs
             do (attr) =>
-                @set(attr, defaultValue?(@) ? defaultValue)
+                value = if typeof defaultValue == 'function' then defaultValue(@) else defaultValue
+                @set(attr, value)
 
                 automation = new Automation
                     element: @
                     attribute: attr
                     maxValue: maxValue
 
-                if not (options and options.noInitial)
-                    automation.addPoint(CurrentTime.get('time'), defaultValue?(@))
+                automation.addPoint(0, (if attr == 'opacity' then 0 else value), false)
+                automation.addPoint(CurrentTime.get('time'), value)
                 @on 'change:' + attr, (element, value, options) =>
                     if not options.noAutomation
                         automation.addPoint(CurrentTime.get('time'), @get(attr))
                 @automations[attr] = automation
-        @trigger('initializationComplete')
 
     serialize: =>
         obj =
@@ -64,6 +64,6 @@ class root.Element extends Backbone.Model
             obj.automations[attr] = automation.serialize()
         return obj
 
-    deserialize: (obj) ->
+    deserialize: (obj) =>
         for attr, automation of @automations
             @automations[attr].deserialize(obj.automations[attr])

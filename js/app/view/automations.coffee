@@ -6,7 +6,7 @@ class root.AutomationsView extends Backbone.View
 
     initialize: ->
         @elements = @options['elements']
-        @elements.on('addComplete', @addElement)
+        @elements.on('add', @addElement)
 
     addElement: (element) =>
         group = new AutomationGroupView(element: element)
@@ -15,3 +15,5 @@ class root.AutomationsView extends Backbone.View
         for attr, automation of element.automations
             view = new AutomationView(automation: automation)
             group.add(view)
+            for point in automation.points
+                view.newPoint(point)

@@ -8,7 +8,7 @@ class root.ElementsView extends Backbone.View
         @elements = @options['elements']
         @elements.on('add', @addElement)
 
-    addElement: (element) =>
+    addElement: (element, collection) =>
         view = new ElementView(element: element)
         view.$el.appendTo(@$el)
-        element.completeInitialization(imageWidth: view.width(), imageHeight: view.height())
+        element.completeInitialization(view.width(), view.height())
