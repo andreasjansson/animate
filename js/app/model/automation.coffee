@@ -185,4 +185,4 @@ class root.Automation extends Backbone.Model
 
     deserialize: (obj) =>
         for p in obj.points
-            @addPoint(p.time, p.value)
+            @addPoint(p.time, p.value, p.interpolate)

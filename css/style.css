@@ -214,7 +214,7 @@ p {
     overflow: hidden;
 }
 
-.automation-point {
+.automation .point {
     height: 5px;
     width: 5px;
     background-color: black;
@@ -229,4 +229,8 @@ p {
 
 .automation .title img {
     display: block;
+}
+
+.x-attribute .point {
+    background-color: green;
 }

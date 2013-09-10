@@ -56,9 +56,9 @@
 </script>
 
 <script type="text/template" id="automation-template">
-  <div class="automation automation-line">
+  <div class="automation automation-line <%= attribute %>-attribute">
     <div class="automation-title title">
-      <h3><%= name %></h3>
+      <h3><%= attribute %></h3>
     </div>
     <div class="timeline">
     </div>
@@ -66,7 +66,7 @@
 </script>
 
 <script type="text/template" id="automation-point-template">
-  <div class="automation-point">
+  <div class="point">
   </div>
 </script>
 
@@ -80,7 +80,6 @@
     var DATA = {
         name: "{{.Name}}",
         data: {{.Data}},
-        data: {},
         audioURL: "{{.AudioURL}}",
         analysis: {{.Analysis}}
     };
