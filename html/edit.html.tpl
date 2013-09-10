@@ -47,16 +47,16 @@
   <div class="automation-group">
     <div class="group-backdrop automation">
       <div class="element-title title">
-        <img src="<%= url %>" />
-      </div>
-      <div class="timeline">
+        <a href="#" class="expander expand">
+          <img src="<%= url %>" />
+        </a>
       </div>
     </div>
   </div>
 </script>
 
 <script type="text/template" id="automation-template">
-  <div class="automation">
+  <div class="automation automation-line">
     <div class="automation-title title">
       <h3><%= name %></h3>
     </div>

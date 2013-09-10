@@ -3,8 +3,8 @@ root = exports ? this
 class root.AutomationGroupView extends Backbone.View
 
     events:
-        'click .collapse': 'collapse'
         'click .expand': 'expand'
+        'click .collapse': 'collapse'
 
     initialize: ->
         @element = @options['element']
@@ -13,6 +13,7 @@ class root.AutomationGroupView extends Backbone.View
         @$el = $(html)
         @views = []
         @collapsed = true
+        @$expander = @$('.expander')
 
     scaleTitleImg: =>
         $img = @$('.title img')
@@ -37,8 +38,12 @@ class root.AutomationGroupView extends Backbone.View
         view.$el.appendTo(@$el)
 
     collapse: =>
-        @$el.removeClass('expanded')
+        @$expander.removeClass('collapse').addClass('expand')
+        @$('.automation-line').animate({height: 0}, 100)
+        return false
 
     expand: =>
-        @$el.addClass('expanded')
+        @$expander.removeClass('expand').addClass('collapse')
+        @$('.automation-line').animate({height: 55}, 100)
+        return false
         

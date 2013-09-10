@@ -185,6 +185,9 @@ p {
     clear: both;
     position: absolute;
     top: 510px;
+    width: 1120px;
+    height: 250px;
+    overflow: auto;
 }
 
 .automation {
@@ -208,6 +211,7 @@ p {
     left: 50px;
     top: 0;
     border: 5px solid black;
+    overflow: hidden;
 }
 
 .automation-point {
