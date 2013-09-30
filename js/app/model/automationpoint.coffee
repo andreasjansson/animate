@@ -7,11 +7,17 @@ root = exports ? this
 
 class root.AutomationPoint extends Backbone.Model
 
-    defaults: ->
+    defaults:
         'time': null
         'value': null
         'interpolate': true
-        '_originalTime': null
+        'automation': null
+
+    prev: =>
+        return @get('automation').pointBefore(@)
+
+    next: =>
+        return @get('automation').pointAfter(@)
 
     serialize: =>
         return time: @get('time'), value: @get('value'), interpolate: @get('interpolate')

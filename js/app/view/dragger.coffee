@@ -1,5 +1,8 @@
 root = exports ? this
 
+CLICK_TIME = 0.2
+CLICK_DRAG = 3
+
 class root.Dragger extends Backbone.View
 
     constructor: ($el, $rel) ->
@@ -59,26 +62,39 @@ class root.Dragger extends Backbone.View
 
     mouseUp: (evt) =>
         $(document).off('mousemove', @mouseMove)
-        
+
         absX = evt.pageX
         absY = evt.pageY
         relX = absX - @offset.x
         relY = absY - @offset.y
-        @trigger 'release',
-            absX: absX
-            absY: absY
-            relX: relX
-            relY: relY
-            dX: relX - @startRelX
-            dY: relY - @startRelY
-            target: evt.target
-            timePassed: (new Date().getTime() / 1000) - @startTime
-            startAbsX: @startAbsX
-            startAbsY: @startAbsY
-            startRelX: @startRelX
-            startRelY: @startRelY
-            grabRelX: relX - @grabOffset.x
-            grabRelY: relY - @grabOffset.y
+        dX = relX - @startRelX
+        dY = relY - @startRelY
+        timePassed = (new Date().getTime() / 1000) - @startTime
+
+        if (timePassed < CLICK_TIME and Math.abs(dX) < CLICK_DRAG and Math.abs(dY) < CLICK_DRAG) or (dX == 0 and dY == 0)
+            @trigger 'click',
+                absX: absX
+                absY: absY
+                relX: relX
+                relY: relY
+                target: evt.target
+
+        else
+            @trigger 'release',
+                absX: absX
+                absY: absY
+                relX: relX
+                relY: relY
+                dX: dX
+                dY: dY
+                target: evt.target
+                timePassed: timePassed
+                startAbsX: @startAbsX
+                startAbsY: @startAbsY
+                startRelX: @startRelX
+                startRelY: @startRelY
+                grabRelX: relX - @grabOffset.x
+                grabRelY: relY - @grabOffset.y
 
         evt.preventDefault()
         return false

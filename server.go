@@ -83,16 +83,21 @@ func (p *Project) Load() error {
 	var audioURL, analysis, data []byte
 	query := `SELECT audio_url, analysis, data
 		  FROM projects
-		  WHERE name=? AND `
+		  WHERE name=? `
 	var keyParam string
-	if p.EditKey == "" {
-		query += "password=?"
+	if p.Password != "" {
+		query += "AND password=?"
 		keyParam = p.Password
-	} else {
-		query += "edit_key=?"
+	} else if p.EditKey != "" {
+		query += "AND edit_key=?"
 		keyParam = p.EditKey
 	}
-	row := db.QueryRow(query, p.Name, keyParam)
+	var row *sql.Row
+	if keyParam != "" {
+		row = db.QueryRow(query, p.Name, keyParam)
+	} else {
+		row = db.QueryRow(query, p.Name)
+	}
 	err = row.Scan(&audioURL, &analysis, &data)
 	if err == sql.ErrNoRows {
 		return ErrProjectNotFound
@@ -505,6 +510,46 @@ func SaveHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, JSONResponse{"status": "OK"})
 }
 
+func BounceHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["name"]
+
+	project := &Project{Name: name}
+	err := project.Load()
+	if err != nil {
+		if err == ErrProjectNotFound {
+			http.NotFound(w, r)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if project.Data == "" {
+		project.Data = "{}"
+	}
+
+	tpl, err := template.ParseFiles(path("html/bounce.html.tpl"))
+	if err != nil {
+		panic(err)
+	}
+
+	data := map[string]template.JS{
+		"Name": template.JS(project.Name),
+		"Data": template.JS(project.Data),
+		"AudioURL": template.JS(project.AudioURL),
+		"Analysis": template.JS(project.Analysis),
+		"Prefix": "mvap",
+	}
+
+	err = tpl.ExecuteTemplate(w, "bounce", data)
+	if err != nil {
+		panic(err)
+	}
+
+	return
+}
+
 func encrypt(input string) string {
 	hash := sha1.New()
 	io.WriteString(hash, input)
@@ -539,6 +584,8 @@ func route() {
 	http.Handle("/js/lib/", http.FileServer(http.Dir(path(""))))
 	http.Handle("/css/", http.FileServer(http.Dir(path(""))))
 	http.Handle("/static/", http.FileServer(http.Dir(path(""))))
+
+	get.HandleFunc("/{name}", BounceHandler)
 
 	http.Handle("/", r)
 

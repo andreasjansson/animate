@@ -6,18 +6,20 @@
 }`
 root = exports ? this
 
+# TODO: cache indices so getIndexNear is O(1)?
+
 class root.Automation extends Backbone.Model
 
     defaults: =>
         'element': null
         'attribute': null
-        'points': null
 
     initialize: ->
         @points = []
         @recentPointIndex = 0 # caching
 
-        CurrentTime.on('change', @checkVisibleChange)
+        CurrentTime.on 'change', =>
+            @checkVisibleChange(CurrentTime.get('time'))
 
     addPoint: (time, value, interpolate=true) =>
         index = @getIndexNear(time)
@@ -32,7 +34,7 @@ class root.Automation extends Backbone.Model
                 time: time
                 value: value
                 interpolate: interpolate
-                _originalTime: time
+                automation: @
             point.on('change:time', @changePointTime)
             point.on('change:value', @changePointValue)
 
@@ -44,7 +46,7 @@ class root.Automation extends Backbone.Model
                     inserted = true
                     break
             if not inserted
-                index = @points.length - 1
+                index = @points.length
                 @points.push(point)
 
             @trigger('newPoint', point)
@@ -56,21 +58,18 @@ class root.Automation extends Backbone.Model
         return point
 
     deletePoint: (time) =>
-        time = Math.round(time * 10) / 10
         index = @getIndexNear(time)
-        if index? and @points[index].get('time') == time
-            @points.splice(index, 1)
+        console.log index, time
+        @points.splice(index, 1)
 
     changePointTime: (point, time) =>
-        # for now, optimise later
-        @deletePoint(point._originalTime)
-        @addPoint(time, point.get('value'))
+        if point == @points[0] and time > 0
+            @addPoint(0, point.get('value'), point.get('interpolate'))
+        @points.sort (x, y) -> x.get('time') - y.get('time')
+        @checkVisibleChange(time)
 
-    changePointValue: (point, value) =>
-        index = @getIndexNear(point.get('time'))
-        visibleChange = @getVisibleChange(point, index)
-        if visibleChange?
-            @get('element').set(@get('attribute'), visibleChange, noAutomation: true)
+    changePointValue: (point) =>
+        @checkVisibleChange(point.get('time'))
 
     getVisibleChange: (current, index) =>
         if !index?
@@ -107,6 +106,18 @@ class root.Automation extends Backbone.Model
         factor = (time - before.get('time')) / (after.get('time') - before.get('time'))
         value = (after.get('value') - before.get('value')) * factor + before.get('value')
         return value
+
+    pointBefore: (point) =>
+        index = @getIndexNear(point.get('time'))
+        if index == 0
+            return null
+        return @points[index - 1]
+
+    pointAfter: (point) =>
+        index = @getIndexNear(point.get('time'))
+        if index == @points.length - 1
+            return null
+        return @points[index + 1]
 
     getValueNear: (time) =>
         # TODO: non-interpolated case
@@ -156,7 +167,7 @@ class root.Automation extends Backbone.Model
         return @interpolate(point, next, time)
 
     checkVisibleChange: (time) =>
-        change = @getValueNear(time.get('time'))
+        change = @getValueNear(time)
         if change?
             @get('element').set(@get('attribute'), change, noAutomation: true)
 

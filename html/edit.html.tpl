@@ -34,11 +34,13 @@
 <div id="scrubber">
 </div>
 
+<!--
 <div id="zoom">
   <a href="#" class="icon reset" title="Reset zoom!">1:1</a>
   <a href="#" class="icon icon-zoom-out out" title="Zoom out!"></a>
   <a href="#" class="icon icon-zoom-in in" title="Zoom in!"></a>
 </div>
+-->
 
 <div id="automations">
 </div>
@@ -74,6 +76,16 @@
   <div class="element">
     <img src="<%= url %>" />
   </div>
+</script>
+
+<script type="text/template" id="float-option-template">
+  <label for="option-<%= name %>"><%= name %></label>
+  <input type="text" id="option-<%= name %>" value="<%= value %>" />
+</script>
+
+<script type="text/template" id="bool-option-template">
+  <label for="option-<%= name %>"><%= name %></label>
+  <input type="checkbox" id="option-<%= name %>" checked="<%= value %>" />
 </script>
 
 <script>

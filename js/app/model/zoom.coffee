@@ -25,7 +25,7 @@ class root.Zoom extends Backbone.Model
         if attrs.start >= attrs.end
             attrs.start = attrs.end - .1
 
-        super(attrs, options)
+        super(attrs, options) #TODO: fix this
 
     reset: =>
         @set(start: 0, end: DATA.analysis.Duration)

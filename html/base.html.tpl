@@ -37,6 +37,12 @@
     <script src="/js/app/view/automationpoint.js"></script>
     <script src="/js/app/view/save.js"></script>
     <script src="/js/app/view/dragger.js"></script>
+    <script src="/js/app/view/optionsbox.js"></script>
+    <script src="/js/app/view/option.js"></script>
+    <script src="/js/app/view/floatoption.js"></script>
+    <script src="/js/app/view/booloption.js"></script>
+    <script src="/js/app/view/automationpointoptions.js"></script>
+    <script src="/js/app/view/elementoptions.js"></script>
   </body>
 </html>
 {{end}}

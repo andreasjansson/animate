@@ -13,6 +13,8 @@ class root.ElementView extends Backbone.View
         window.el1 = @
 
         @dragger = new Dragger(@$el, $('#screen'))
+        @dragger.on('start', @click)
+        @dragger.on('click', @click)
         @dragger.on('move', @drag)
         @dragger.on('release', @release)
 
@@ -56,9 +58,8 @@ class root.ElementView extends Backbone.View
     height: =>
         return @$img.height()
 
-    # TODO: disable interpolation while we're dragging
-    startDrag: (evt) =>
-        
+    click: (evt) =>
+        new ElementOptionsView(model: @element)
 
     drag: (evt) =>
         @element.set(x: evt.grabRelX, y: evt.grabRelY)

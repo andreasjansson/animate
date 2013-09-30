@@ -2,9 +2,6 @@
 
 root = exports ? this
 
-CLICK_TIME = 0.2
-CLICK_DRAG = 3
-
 class root.ScrubberView extends Backbone.View
 
     el: '#scrubber'
@@ -19,9 +16,9 @@ class root.ScrubberView extends Backbone.View
         @buildScrubber()
 
         @dragger = new Dragger(@$el)
-        @dragger.on('start', @mouseDown)
-        @dragger.on('move', @drag)
-        @dragger.on('release', @release)
+        @dragger.on('start', @scrub)
+        @dragger.on('move', @scrub)
+        @dragger.on('click', @scrub)
 
     buildScrubber: =>
 
@@ -91,9 +88,6 @@ class root.ScrubberView extends Backbone.View
     release: (evt) =>
         @zoomRect.remove()
 
-        if (evt.timePassed < CLICK_TIME and Math.abs(evt.dX) < CLICK_DRAG) or evt.dX == 0
-            return @click(evt.relX)
-
         [startX, endX] = [evt.startRelX, evt.relX]
         if startX > endX
             [startX, endX] = [endX, startX]
@@ -111,12 +105,12 @@ class root.ScrubberView extends Backbone.View
         else
             @zoomRect.attr(x: evt.relX, width: -evt.dX)
 
-    click: (x) =>
+    scrub: (evt) =>
         scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
-        time = x * scale + @zoom.get('start')
+        time = evt.relX * scale + @zoom.get('start')
         CurrentTime.set('time', time)
 
-    setCurrentPosition: () =>
+    setCurrentPosition: =>
         scale = (@zoom.get('end') - @zoom.get('start')) / @$el.width()
         x = (CurrentTime.get('time') - @zoom.get('start')) / scale
         @currentPosition.attr(x: x)
