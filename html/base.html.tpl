@@ -36,6 +36,7 @@
     <script src="/js/app/view/automation.js"></script>
     <script src="/js/app/view/automationpoint.js"></script>
     <script src="/js/app/view/save.js"></script>
+    <script src="/js/app/view/bounce.js"></script>
     <script src="/js/app/view/dragger.js"></script>
     <script src="/js/app/view/optionsbox.js"></script>
     <script src="/js/app/view/option.js"></script>

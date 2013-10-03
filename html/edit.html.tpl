@@ -4,7 +4,7 @@
 
 <div id="left-panel">
   <a href="#" id="save" class="save icon icon-save" title="Save!"></a>
-  <a href="#" class="preview icon icon-rocket" title="Bounce!"></a>
+  <a href="/{{.Name}}" class="preview icon icon-rocket" title="Bounce!"></a>
 </div>
 
 <div id="screen">
@@ -85,7 +85,7 @@
 
 <script type="text/template" id="bool-option-template">
   <label for="option-<%= name %>"><%= name %></label>
-  <input type="checkbox" id="option-<%= name %>" checked="<%= value %>" />
+  <input type="checkbox" id="option-<%= name %>" <% if(value) { %> checked="checked" <% } %> />
 </script>
 
 <script>

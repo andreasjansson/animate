@@ -20,7 +20,6 @@ class root.ElementView extends Backbone.View
 
     render: (element) =>
         changes = element.changed
-        cssChanges = {}
         if 'x' of changes
             @$el.css('left', changes.x)
         if 'y' of changes
@@ -42,9 +41,6 @@ class root.ElementView extends Backbone.View
             @$el.css('-o-transform', rotateString)
         if 'zIndex' of changes
             @$el.css('z-index', changes.zIndex)
-
-        if cssChanges
-            @$el.css(cssChanges)
 
         if 'url' of changes
             @$img.attr('src', url)

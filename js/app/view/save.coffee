@@ -14,6 +14,7 @@ class root.SaveView extends Backbone.View
         $.post('/save', {name: DATA.name, data: data})
             .done(@success)
             .fail(@error)
+        return false
 
     success: =>
         @$el.fadeOut().fadeIn()
